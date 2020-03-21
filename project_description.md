@@ -116,7 +116,7 @@ If we take a look at given standatd deviation, means and max values the result l
 
 However, there is one drawback. If we take a closer look at destribution of the absolute errors we can realize that those differences arises from the last quantiles of the absolute errors.
 <p align="center">
-  <img src = "https://imgur.com/rr2esUq"/>
+  <img src = "https://imgur.com/rr2esUq.png"/>
 </p>
 
 In this case there is no possibility to detect all of the anomalies, because in the most cases their values are simillar to the predicted ones. We could expect that situation, because as it was written in the dataset description: *The anomalies are marked by humans and therefore may not be consistent.* 
