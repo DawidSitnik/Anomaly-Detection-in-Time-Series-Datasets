@@ -100,4 +100,29 @@ Than we tested our model on the data that wasn't used for learning enriched of d
   <img src = "https://imgur.com/KllWyqt.png"/>
 </p>
 
-Now to detect the anomalies
+Than, to point the anomalies we tried to find the treshold which is the the absolute value of difference between real and predicted values. To do that we splited our results into two groups - anomaly data and normal data. The summarize of absolute errors for each group can be seen at the picture:
+
+group without anomalies
+<p align="center">
+  <img src = "https://imgur.com/F6gOrQT.png"/>
+</p>
+
+group with anomalies
+<p align="center">
+  <img src = "https://imgur.com/znyw1Up.png"/>
+</p>
+
+If we take a look at given standatd deviation, means and max values the result looks quite promising and seems like we could differentiate those two groups without any problem. 
+
+However, there is one drawback. If we take a closer look at destribution of the absolute errors we can realize that those differences arises from the last quantiles of the absolute errors.
+<p align="center">
+  <img src = "https://imgur.com/rr2esUq"/>
+</p>
+
+In this case there is no possibility to detect all of the anomalies, because in the most cases their values are simillar to the predicted ones. We could expect that situation, because as it was written in the dataset description: *The anomalies are marked by humans and therefore may not be consistent.* 
+
+The best possible result we could get was positively finding 30 anomalies out of 160, at the same time not classyfing any normal value as anomaly. This result was obtained for treshold equaled to 30. 
+
+To detect more anomalies we could try to escalate the treshold value, but we would have to pay the cost of classyfing normal data as anomalies. 
+
+To obtain better results we could try to define anomalies on our own, looking at its values and gradients. 
