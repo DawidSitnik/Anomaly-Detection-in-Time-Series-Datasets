@@ -46,10 +46,23 @@ Another thing which can be done is data normalization. In our purpose we decided
 ```
 df = (df - df.mean()) / (df.max() - df.min())
 ```
+So finally description of our data is:
+<p align="center">
+  <img src = "https://imgur.com/5d2GGWd.png"/>
+</p>
 
+We also have checked if the data doesn't contain any null falues and outlayers, but fortunatelly it didn't.
+
+As we can see, our signal is quite complex - it changes its values drastically, so we also have tried to smooth it a little bit using rooling window technique trying different values of window. The signal smoothed with window set to 5, can be seen at the picture bellow:
+
+<p align="center">
+  <img src = "https://imgur.com/G9gw5w4.png"/>
+</p>
 
 # LSTM neural network approach
-Those networks are type of recurrent neural networks, which complex architecture enables 
 A powerful type of neural network designed to handle sequence dependence is called recurrent neural networks. The Long Short-Term Memory network or LSTM network is a type of recurrent neural network used in deep learning because very large architectures can be successfully trained.
 
+Before feeding the network with the data we needed to extend our dataset by assigning new attributes to each value. The new attributes are previous values of time series, so for value recorded at time t we extended it of values from t-1, t-2 ... t-n. In this case we got dataframe of size (initial length of dataframe x n). We couldn't create all of the attributes for last n observations from each subdataset so we decided to not include them in our training dataset. 
+
+Because of the LSTM neural network nature, we had to reshape our data one more time to get its final dimension equal to (initial length of dataframe x n x 1). It had to be done, because those types of networks opperates only on 3D vectors. 
 
