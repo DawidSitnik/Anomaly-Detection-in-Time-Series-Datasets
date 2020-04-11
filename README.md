@@ -159,7 +159,7 @@ We can plot confustion matrix to quantify model performance.
 
 ### ARIMA model
 
-*ARIMA anomaly detection model will be implemented in the next steps of the project*
+*ARIMA anomaly detection model will be implemented in the next steps of the project*  
 Implementation of ARIMA forecasting model can be found in [yahoo_notebook.Rmd](yahoo_notebook.Rmd)
 
 ### Random Forests
