@@ -17,6 +17,8 @@ To detect anomalies we are going to create some models whihch will be learned on
 
 In our project we would like to compare classical approaches of modeling with more modern one. The first group of sollutions will be based on transforming dataset into its vector representation of time series (for example - values history for certain period with its eventual aggregation in smaller sub-windows in different variants) and then use one of classical alghoritms like linear regression, random forest classifier etc. to create the model. In the second approach we will use LSTM neural network which will work only on historical values from the time series.
 
+Eventually, we will also try to find anomalies with ARIMA and ESD models. This models are mostly used for forecasting, but their application can be extended to anomaly detection.
+
 ## Dataset
 This dataset is provided as part of the Yahoo! Webscope program, to be used for approved non-commercial research purposes by recipients who have signed a Data Sharing Agreement with Yahoo! Dataset contains real and synthetic time-series with labeled anomalies. Timestamps are replaced by integers with the increment of 1, where each data-point represents 1 hour worth of data. The anomalies are marked by humans and therefore may not be consistent.
 
@@ -29,19 +31,83 @@ The is_anomaly field is a boolean indicating if the current value at a given tim
 
 **Dataset snippet:**
 
-*1,83,0*
-
-*2,605,0*
-
-*3,181,0*
-
-*4,37,0*
-
-*5,45,1*
+```
+  timestamp value is_anomaly
+1         1  5.86          0
+2         2  5.95          0
+3         3  5.92          0
+4         4  5.47          0
+5         5  5.77          0
+6         6  5.73          0
+```
 
 The dataset consists of 10 independent .csv files which combined signal is presented at the picture below: 
 <p align="center">
-  <img src = "https://i.imgur.com/FGLEwGT.png"/>
+  <img src = "https://imgur.com/FGLEwGT.png"/>
+</p>
+
+Example of one of the signals with highlighted anomalies:
+<p align="center">
+  <img src="https://imgur.com/y1cyx0a.png">
+</p>
+
+Common exploratory data analysis tool in time-series and non-time series data are histograms. We will also look at the differenced data because we want to use our timestamp (time) axis.
+
+The histogram of untransformed data
+<div class="row">
+  <div class="column">
+    <img src="https://imgur.com/M2phBfi.png">
+  </div>
+  <div class="column">
+    <img src="https://imgur.com/ovzO405.png">
+  </div>
+</div>
+
+The histogram of untransformed data (top) shows normal distributions. This is to be expected given that the underlying sample (13th in our case) has no trend. If series had trend, we would difference the data to remove it, and this would transform the data to a more normal shaped distribution (bottom).
+
+Next, we would like to know if time-series is *stationary*. We do this because many traditional statistical time series models rely on time series being stationary. In general, time series is *stationary* when it has fairly stable statistical properties over time, particularly mean and variance. The Augmented Dickey-Fuller (ADF) test is the most commonly used metric to access a time series for stationary problems. That test focuses on whether the mean of a series is changing, a variance isn’t tested here. 
+
+ADF test result of one of the the Yahoo time series.
+
+```
+    Augmented Dickey-Fuller Test
+
+data:  series$value
+Dickey-Fuller = -10.364, Lag order = 11, p-value = 0.01
+alternative hypothesis: stationary
+```
+
+Depending on the resulst of the test, null hypothesis can be rejected for a specific significance level - *p*-value. Conventionally, if *p*-value is less 0.05, the time series is likely stationany, whereas a *p* > 0.05 provides no such evidence.
+
+Common exploartory times series methods is identifying where the series has a self-correlation, which generalizes to autocorrelation. Self-corelation of a time series is the ideat that a value in a time series at one give point in time has a correlation to the value at another point in time. Autocorrelation on the other hand asks more general question of wheher there is a correlation between two points in a specific time series witha a specific fixed distance between them.
+
+We can apply the Box-Pierce test to the data to know wheher or not the data is autocorrelated.
+
+```
+    Box-Pierce test
+
+data:  series$value
+X-squared = 1128.3, df = 1, p-value < 2.2e-16
+```
+
+Same as with ADF test we can how likely times series is autocorrelated depending on the *p*-values.
+
+We can graph the autocorrelation function to dig further into the data.
+
+<p align="center">
+  <img src="https://imgur.com/kyFbXmR.png">
+</p>
+
+The partial autocorrelation function is another tool for revealing the interpollations in at time seris. However, its interpolation is much less intutive than that of the autocorrelation function. One of the definitions of the partial autocorrelation functions goes as follow:
+
+> The partial correlation between two random variables, X and Y, is the correlation that remains after accounting for the correlation shown by X and Y with all other variables. In the case of time series, the partial autocorrelation at lag k is the correlation between all data points that are exactly k steps apart, after accounting for their correlation with the data between those k steps.
+
+The particular value of partial autocorrelation is that it helps to identify the number of *autoregressions* coefficients, which are used in ARIMA model.
+
+We can visualize partial autocorrelation function at each lag.
+
+<p align="center">
+  <img src = "https://imgur.com/gWQenZu.png"/>
 </p>
 
 ### Data Preprocessing
@@ -63,6 +129,46 @@ As we can see, our signal is quite complex - it changes its values drastically, 
 <p align="center">
   <img src = "https://imgur.com/G9gw5w4.png"/>
 </p>
+
+### Liner Regression
+
+The liner regression model is one the most common method for identifyin and quantifying the relashionship between a dependant variables and a single independent variables. This model has a wide range of applications, from a casual inference to predictive analysis.
+
+*Liner Regression anomaly detection model will be implemented in the next steps of the projct*
+
+### Season Hybrid ESD Model
+
+Season Hybrid ESD (Extreme Studentized Deviant) is well know method for identifying anomales in times series which remains usefull and well performing. Season Hybrid ESD is built on statistical test, the *Grubbs test*, which defines a statistic for testing the hypothesis that there is a single outlier in a dataset. The ESD applies this test repeatedly, first to the most extreme outlier and the to the smaller outliers. ESD also accounts for seasonality in behavior vie time series decomposition.
+
+Visualizations of the Yahoo time series with actual anomalies(top) and anomalies found by ESD model.
+
+<div class="row">
+  <div class="column">
+    <img src="https://imgur.com/y1cyx0a.png">
+  </div>
+  <div class="column">
+    <img src = "https://imgur.com/SIHFsXV.png"/>
+  </div>
+</div>
+
+We can plot confustion matrix to quantify model performance.
+
+<p align="center">
+  <img src="https://imgur.com/5cZgO07.png">
+</p>
+
+### ARIMA model
+
+*ARIMA anomaly detection model will be implemented in the next steps of the project*
+Implementation of ARIMA forecasting model can be found in [yahoo_notebook.Rmd](yahoo_notebook.Rmd)
+
+### Random Forests
+
+*Random Forest model will be implemented in the next steps of the project*
+
+### Gradient Boosted Machine model
+
+*Gradient Boost Machine anomaly model will be implemented in the next steps of the project*
 
 ### LSTM Neural Network Approach
 A powerful type of neural network designed to handle sequence dependence is called recurrent neural networks. The Long Short-Term Memory network or LSTM network is a type of recurrent neural network used in deep learning because very large architectures can be successfully trained.

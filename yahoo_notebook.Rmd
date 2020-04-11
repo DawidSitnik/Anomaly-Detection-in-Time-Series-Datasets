@@ -1,0 +1,294 @@
+---
+title: "Anomaly detection in Yahoo time series"
+output: 
+  # html_document
+  rmdformats::readthedown:
+    highlight: kate
+---
+
+# Required libraries
+
+Tidyverse - core tidy verse packges used in this project are:  
+
+* ggplo2 - plotting library, duh
+* purr - functional programming toolkit, helps you forget what loops are
+* readr - reading rectangular data, .csv in our case
+* dplyr - it's like sql, but in r
+
+AnomalyDetection - Twitter's outlier detection package that implements Season Hybrid ESD (Extreme Studentized Deviant).
+
+Forecast - methods and tools for analysing univariate time series.
+
+Tseries - time series analysis and computational finance.
+
+Yardstick - tools for quntifying model performance.
+
+```{r, setup, include=FALSE, echo=FALSE, cache=FALSE}
+# Rendering libraries
+library(knitr)
+# library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(cache=TRUE,
+               prompt=FALSE,
+               # tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+
+# Project libraries
+library(tidyverse)
+library(AnomalyDetection)
+library(forecast)
+library(yardstick)
+library(tseries)
+library(TSstudio)
+```
+
+# Loading dataset
+
+Default path is set to `dataset/A1Bechmark`. You can specify whether to convert timestapms to `Date` type.
+
+```{r, cache=TRUE}
+load_dataset <- function(convert_timestamp = FALSE,
+                         path = "dataset/A1Benchmark") {
+  dataset_files <- list.files(path, full.names = TRUE)
+  
+  # We throw warning if dataset is empty
+  if (length(dataset_files) == 0){
+    warning(paste("Warning: loaded dataset has 0 records.\n"))
+  }
+  
+  # Parse files
+  dataset <- dataset_files %>% 
+    map(function(x) {
+        read_csv(x, col_type = cols(
+          col_double(),
+          col_double(),
+          col_double()
+        ))
+      })
+  if (convert_timestamp) {
+    dataset <- dataset %>%
+      map(function(x) {
+        time <- as.POSIXlt.Date(x$timestamp)
+        df <- data.frame(time, x$value, x$is_anomaly)
+        colnames(df) <- c("timestamp", "value", "is_anomaly")
+        df
+      })
+  }
+  dataset
+}
+
+
+# Load dataset
+dataset <- load_dataset(TRUE)
+paste("Yahoo time series dataset contains", length(dataset), "records")
+```
+
+# Exploring yahoo dataset
+
+Dataset snippet
+
+```{r}
+head(load_dataset()[[30]])
+```
+
+
+Plot time series with highlighted anomalies.
+
+```{r, warning=FALSE}
+
+plot_ts <- function(series) {
+  # Create a copy of timse series with normal values set to NA
+  outliers_NA <- series
+  outliers_NA$value[which(outliers_NA$is_anomaly == 0)] <- NA
+  
+  # ggplot default color:
+  # - bluish green: #00BFC4
+  # - vermillion: #F8766D
+  ggplot(series, aes(x = timestamp, y = value)) +
+    geom_line(size = 0.3) +
+    geom_point(outliers_NA, mapping = aes(x = timestamp, y = value, color = "red"),
+               size = 3, shape = 1) +
+    scale_x_datetime(expand = c(0.01, 0)) +
+    scale_y_continuous(expand = c(0.05, 0)) +
+    theme_bw() +
+    theme(legend.position = "none") +
+    labs(x = "Timestamp", y = "Value", color = "Anomaly")
+}
+
+# Set working time series
+series <- dataset[[30]]
+plot_ts(series)
+```
+
+Let's add some histograms.
+
+```{r}
+plot_hist <- function(series, binsize = 1) {
+  ggplot(series, aes(x = value)) +
+    geom_histogram(binwidth = binsize, fill = "white", color = "black") +
+    theme_bw() +
+    labs(x = "Value", y = "Frequency", color = "Anomaly")
+}
+
+# Histogram of untrasformed data
+plot_hist(series, 0.1)
+
+# Difference the data
+diffs <- data.frame(series %>% map(diff))
+plot_hist(diffs, 0.1)
+```
+
+<!-- Decomposition of the time series. -->
+
+<!-- ```{r} -->
+<!-- stl(series$value) -->
+<!-- ``` -->
+
+Test if time series is stationary.
+
+```{r, warning=FALSE}
+adf.test(series$value)
+```
+
+Test presence of autocorrelation.
+
+```{r}
+Box.test(series$value)
+```
+
+Plotting the autocorrelation function.
+
+```{r}
+acf(series$value)
+```
+
+Plotting the partial autocorrelation function.
+
+```{r}
+pacf(series$value)
+```
+
+# Anomaly detection
+
+## Liner regression
+
+### Predicting
+
+`TODO`
+
+### Identifying anomalies
+
+`TODO`
+
+## Seasonal Hybrid ESD model
+
+Find and plot anomalies using Hybrid ESD.
+
+```{r, cache=TRUE, warning=FALSE, message=FALSE}
+find_anomalies <- function(series) {
+  # Leave only timestamp and value columns
+  data = data.frame(series$timestamp, series$value)
+  
+  # Find and plot anomalies
+  res = AnomalyDetectionTs(data,
+                           max_anoms = 0.02,
+                           direction = "both",
+                           plot = TRUE)
+  res$plot <- 
+    res$plot + 
+    geom_line(size = 0.3, color = "black") +
+    scale_color_manual(values = c("black", "red")) +
+    theme_bw() + 
+    theme(legend.position = "none") +
+    scale_x_datetime(expand = c(0.01, 0)) +
+    scale_y_continuous(expand = c(0.05, 0)) +
+    labs(x = "Timestamp", y = "Value", color = "Anomaly")
+  res
+}
+
+# Plot actual anomalies
+plot_ts(series) + ggtitle("Actual anomalies")
+
+# Plot Hybrid ESD anomalies
+res = find_anomalies(series)
+res$plot + ggtitle("Hybrid ESD anomalies")
+```
+
+Plot confusion matrix.
+
+```{r, cache=TRUE}
+plot_confusion <- function(series, predicted) {
+  real_series <- series$is_anomaly
+  
+  # Fill prediction series
+  predicted_series <- vector("integer", length(real_series))
+  predicted_series[match(as.numeric(predicted$anoms$timestamp),
+                         as.numeric(series$timestamp))] <- 1
+  
+  anomalies_df <-
+    data.frame(as.factor(real_series), as.factor(predicted_series))
+  colnames(anomalies_df) <- c("real", "predicted")
+  cm <- conf_mat(anomalies_df, real, predicted)
+  autoplot(cm, type = "heatmap")
+}
+
+plot_confusion(series, res)
+```
+
+## ARIMA model
+
+### Predicting anomalies
+
+Fitting an ARIMA Model.
+
+```{r}
+yahoo_m <- auto.arima(series$value, seasonal = FALSE)
+yahoo_m
+```
+
+Running diagnosis on an ARIMA model.
+
+```{r}
+checkresiduals(yahoo_m)
+```
+
+Make forecast with ARIMA model.
+
+```{r}
+fc_yahoo_m <- forecast(yahoo_m, 20)
+fc_yahoo_m
+```
+
+Plotting the forecast.
+
+```{r}
+ts_length = length(fc_yahoo_m$x)
+
+# Plot ARIMA forecast
+autoplot(fc_yahoo_m) +
+  theme_bw()
+
+# Zoomed-in version
+autoplot(fc_yahoo_m) +
+  theme_bw() +
+  coord_cartesian(xlim = c(max(ts_length - 100, 0), ts_length))
+```
+
+### Identifying anomalies
+
+`TODO`
+
+## Machine learning models
+
+### Random Forests model
+
+`TODO`
+
+### Gradient Boosted Machine model
+
+`TODO`
