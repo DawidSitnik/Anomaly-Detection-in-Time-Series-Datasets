@@ -39,30 +39,34 @@ The is_anomaly field is a boolean indicating if the current value at a given tim
 
 *5,45,1*
 
-The dataset consists of 10 independent .csv files which combined signal is presented at the picture below: 
+The dataset before preprocessing:
 <p align="center">
-  <img src = "https://i.imgur.com/FGLEwGT.png"/>
+  <img src = "https://imgur.com/S8cpxqr.png"/>
 </p>
 
 ### Data Preprocessing
-Before feeding the network with data we should preprocess our data. The first thing which comes to the mind is to detect trends and seasonality and delete it from the signal. However, in this case there is no seasonality nor trend, as we can see at the picture. 
+Before feeding the network with data we should preprocess our data. The first thing which comes to the mind is to detect trends and seasonality and delete it from the signal. However, in this case there was no seasonality nor trend. Than we checked if the data doesn't contain any null falues and outlayers, but fortunatelly it didn't.
 
 Another thing which can be done is data normalization. In our purpose we decided to normalize our data due to this formule:
 ```
 df = (df - df.mean()) / (df.max() - df.min())
 ```
+
+As we can see, our signal is quite complex - it changes its values drastically, so we also have tried to smooth it a little bit using rooling window technique trying different values of window. The window size which gave us the best result was 5.
+
+The preprocessed signal can be seen at the picture below:
+
+<p align="center">
+  <img src = "https://imgur.com/djdLlqB.png"/>
+</p> 
+
 So finally description of our data is:
 <p align="center">
-  <img src = "https://imgur.com/5d2GGWd.png"/>
+  <img src = "https://imgur.com/BMTJWsV.png"/>
 </p>
 
-We also have checked if the data doesn't contain any null falues and outlayers, but fortunatelly it didn't.
 
-As we can see, our signal is quite complex - it changes its values drastically, so we also have tried to smooth it a little bit using rooling window technique trying different values of window. The signal smoothed with window set to 5, can be seen at the picture bellow:
 
-<p align="center">
-  <img src = "https://imgur.com/G9gw5w4.png"/>
-</p>
 
 ### LSTM Neural Network Approach
 A powerful type of neural network designed to handle sequence dependence is called recurrent neural networks. The Long Short-Term Memory network or LSTM network is a type of recurrent neural network used in deep learning because very large architectures can be successfully trained.
