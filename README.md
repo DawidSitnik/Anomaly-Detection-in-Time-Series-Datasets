@@ -41,7 +41,7 @@ The is_anomaly field is a boolean indicating if the current value at a given tim
 
 The dataset before preprocessing:
 <p align="center">
-  <img src = "https://imgur.com/S8cpxqr.png"/>
+  <img src = "https://imgur.com/E2ConFg.png"/>
 </p>
 
 ### Data Preprocessing
