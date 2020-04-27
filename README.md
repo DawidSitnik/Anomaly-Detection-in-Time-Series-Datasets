@@ -41,7 +41,7 @@ The is_anomaly field is a boolean indicating if the current value at a given tim
 
 The dataset before preprocessing:
 <p align="center">
-  <img src = "https://imgur.com/E2ConFg.png"/>
+  <img src = "https://imgur.com/qkjA3oo.png"/>
 </p>
 
 ### Data Preprocessing
@@ -57,7 +57,7 @@ As we can see, our signal is quite complex - it changes its values drastically, 
 The preprocessed signal can be seen at the picture below:
 
 <p align="center">
-  <img src = "https://imgur.com/djdLlqB.png"/>
+  <img src = "https://imgur.com/oSG2zG7.png"/>
 </p> 
 
 So finally description of our data is:
@@ -101,37 +101,37 @@ The best obtained result was for:
 
 The learning process of network can be seen here:
 <p align="center">
-  <img src = "https://imgur.com/EhXDPQB.png"/>
+  <img src = "https://imgur.com/59ARm9m.png"/>
 </p>
 
-Than we tested our model on the data that wasn't used for learning enriched of data with anomalies. The final result:
+Signal prediction on training dataset:
 <p align="center">
-  <img src = "https://imgur.com/KllWyqt.png"/>
+  <img src = "https://imgur.com/WbhzOD0.png"/>
 </p>
+
+
+Signal prediction on testing dataset:
+<p align="center">
+  <img src = "https://imgur.com/Dx0f3ja.png"/>
+</p>
+
+The model isn't overtrained, as it can be seen at the pictures, signal predicted basing on test dataset is as good as the one predicted on training dataset.
 
 Than, to point the anomalies we tried to find the treshold which is the the absolute value of difference between real and predicted values. To do that we splited our results into two groups - anomaly data and normal data. The summarize of absolute errors for each group can be seen at the picture:
 
 group without anomalies
 <p align="center">
-  <img src = "https://imgur.com/F6gOrQT.png"/>
+  <img src = "https://imgur.com/4HMz185.png"/>
 </p>
 
 group with anomalies
 <p align="center">
-  <img src = "https://imgur.com/znyw1Up.png"/>
+  <img src = "https://imgur.com/rwVLJJg.png"/>
 </p>
 
-If we take a look at given standatd deviation, means and max values the result looks quite promising and seems like we could differentiate those two groups without any problem. 
+The max error for group without anomalies equals to 0.151, when min error for group with anomalies is 0.1639. It means ,that we can easily split the difference between those two groups if we choose a loterated error treshold sensibly.
 
-However, there is one drawback. If we take a closer look at destribution of the absolute errors we can realize that those differences arises from the last quantiles of the absolute errors.
-<p align="center">
-  <img src = "https://imgur.com/rr2esUq.png"/>
-</p>
+The treshold value set to differenciate groups correctly is *12 * (standard deviation of the whole dataset)* what equals to 1.559.
 
-In this case there is no possibility to detect all of the anomalies, because in the most cases their values are simillar to the predicted ones. We could expect that situation, because as it was written in the dataset description: *The anomalies are marked by humans and therefore may not be consistent.* 
 
-The best possible result we could get was positively finding 30 anomalies out of 160, at the same time not classyfing any normal value as anomaly. This result was obtained for treshold equaled to 30. 
 
-To detect more anomalies we could try to escalate the treshold value, but we would have to pay the cost of classyfing normal data as anomalies. 
-
-To obtain better results we could try to define anomalies on our own, looking at its values and gradients. 
