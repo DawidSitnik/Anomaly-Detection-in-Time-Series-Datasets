@@ -95,9 +95,9 @@ We repeated the learning process many times, trying different sizes of:
 * epochs 
 
 The best-obtained result was for:
-* n = 5
-* window size = 1, so there was no need for simplifying the signal
-* 100 epochs
+* lookback n = 5
+* smoothing window size = 5
+* 20 epochs
 
 The learning process of network can be seen here:
 <p align="center">
@@ -134,4 +134,9 @@ The max error for the group without anomalies equals to 0.151 when min error for
 The threshold value set to differentiate groups correctly is *12 * (standard deviation of the whole dataset)* what equals to 1.559.
 
 
+### Summary
+
+The experiment proves thet we can use deep neural network for anomaly prediction also. Even though it is not the classical approach for anomaly detection it works properly as well. 
+
+If we would like to use this approach for different dataset we would probably have to change a treshold value. It could be done automatically by the function which minimizes F1 value and takes treshold as the parameter. 
 
