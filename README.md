@@ -5,6 +5,8 @@
 
 * LSTM_approach.ipynb - jupyter notebook in which the whole solution is made
 * LSTM_approach.r - the same solution made in R with extraction of the fragment responsible for learning LSTM network.
+* yahoo_notebook.Rmd - R notebook with Linear Regressin, Random Forests, Gradient Boosted Machine, ESD and ARIMA models.
+* yahoo_notebook.html - knited R notebook with model and tests evaluation results.
 
 ## The Aim of The Project
 The main goal is to detect anomalies in time series dataset. As the dataset we decied to choose data shared by Yahoo called *'A Benchmark Dataset for Time Series Anomaly Detection'*, which is the real traffic data from Yahoo servers. 
@@ -23,6 +25,7 @@ Eventually, we will also try to find anomalies with ARIMA and ESD models. This m
 This dataset is provided as part of the Yahoo! Webscope program, to be used for approved non-commercial research purposes by recipients who have signed a Data Sharing Agreement with Yahoo! Dataset contains real and synthetic time-series with labeled anomalies. Timestamps are replaced by integers with the increment of 1, where each data-point represents 1 hour worth of data. The anomalies are marked by humans and therefore may not be consistent.
 
 **The dataset fields are:**
+
 * *timestamp*
 * *value*
 * *is_anomaly*
@@ -41,27 +44,22 @@ The is_anomaly field is a boolean indicating if the current value at a given tim
 6         6  5.73          0
 ```
 
-The dataset consists of 10 independent .csv files which combined signal is presented at the picture below: 
-<p align="center">
-  <img src = "https://imgur.com/FGLEwGT.png"/>
-</p>
+The dataset consists of 10 independent .csv files which combined signal is presented at the picture below:  
+
+![](https://imgur.com/FGLEwGT.png){width=80%}
 
 Example of one of the signals with highlighted anomalies:
-<p align="center">
-  <img src="https://imgur.com/y1cyx0a.png">
-</p>
+
+![](https://imgur.com/y1cyx0a.png){width=80%}
 
 Common exploratory data analysis tool in time-series and non-time series data are histograms. We will also look at the differenced data because we want to use our timestamp (time) axis.
 
 The histogram of untransformed data
-<div class="row">
-  <div class="column">
-    <img src="https://imgur.com/M2phBfi.png">
-  </div>
-  <div class="column">
-    <img src="https://imgur.com/ovzO405.png">
-  </div>
-</div>
+
+![](https://imgur.com/M2phBfi.png){width=80%}
+
+![](https://imgur.com/ovzO405.png){width=80%}
+
 
 The histogram of untransformed data (top) shows normal distributions. This is to be expected given that the underlying sample (13th in our case) has no trend. If series had trend, we would difference the data to remove it, and this would transform the data to a more normal shaped distribution (bottom).
 
@@ -79,9 +77,9 @@ alternative hypothesis: stationary
 
 Depending on the resulst of the test, null hypothesis can be rejected for a specific significance level - *p*-value. Conventionally, if *p*-value is less 0.05, the time series is likely stationany, whereas a *p* > 0.05 provides no such evidence.
 
-Common exploartory times series methods is identifying where the series has a self-correlation, which generalizes to autocorrelation. Self-corelation of a time series is the ideat that a value in a time series at one give point in time has a correlation to the value at another point in time. Autocorrelation on the other hand asks more general question of wheher there is a correlation between two points in a specific time series witha a specific fixed distance between them.
+Common exploartory times series methods is identifying where the series has a self-correlation. Self-corelation of a time series is the ideat that a value in a time series at one give point in time has a correlation to the value at another point in time. Autocorrelation on the other hand asks more general question of whether there is a correlation between two points in a specific time series witha a specific fixed distance between them.
 
-We can apply the Box-Pierce test to the data to know wheher or not the data is autocorrelated.
+We can apply the Box-Pierce test to the data to know whether or not the data is autocorrelated.
 
 ```
     Box-Pierce test
@@ -90,13 +88,12 @@ data:  series$value
 X-squared = 1128.3, df = 1, p-value < 2.2e-16
 ```
 
-Same as with ADF test we can how likely times series is autocorrelated depending on the *p*-values.
+Same as with ADF test we can see how likely times series is autocorrelated depending on the *p*-values.
 
 We can graph the autocorrelation function to dig further into the data.
 
-<p align="center">
-  <img src="https://imgur.com/kyFbXmR.png">
-</p>
+![](https://imgur.com/kyFbXmR.png){width=80%}
+
 
 The partial autocorrelation function is another tool for revealing the interpollations in at time seris. However, its interpolation is much less intutive than that of the autocorrelation function. One of the definitions of the partial autocorrelation functions goes as follow:
 
@@ -106,9 +103,7 @@ The particular value of partial autocorrelation is that it helps to identify the
 
 We can visualize partial autocorrelation function at each lag.
 
-<p align="center">
-  <img src = "https://imgur.com/gWQenZu.png"/>
-</p>
+![](https://imgur.com/gWQenZu.png){width=80%}
 
 ### Data Preprocessing
 Before feeding the network with data we should preprocess our data. The first thing which comes to the mind is to detect trends and seasonality and delete it from the signal. However, in this case there is no seasonality nor trend, as we can see at the picture. 
@@ -118,57 +113,49 @@ Another thing which can be done is data normalization. In our purpose we decided
 df = (df - df.mean()) / (df.max() - df.min())
 ```
 So finally description of our data is:
-<p align="center">
-  <img src = "https://imgur.com/5d2GGWd.png"/>
-</p>
+
+![](https://imgur.com/5d2GGWd.png){width=20%}
 
 We also have checked if the data doesn't contain any null falues and outlayers, but fortunatelly it didn't.
 
 As we can see, our signal is quite complex - it changes its values drastically, so we also have tried to smooth it a little bit using rooling window technique trying different values of window. The signal smoothed with window set to 5, can be seen at the picture bellow:
 
-<p align="center">
-  <img src = "https://imgur.com/G9gw5w4.png"/>
-</p>
+![](https://imgur.com/G9gw5w4.png){width=80%}
+
 
 ### Liner Regression
 
-The liner regression model is one the most common method for identifyin and quantifying the relashionship between a dependant variables and a single independent variables. This model has a wide range of applications, from a casual inference to predictive analysis.
+The liner regression model is one the most common method for identifying and quantifying the relashionship between a dependant variables and a single independent variables. This model has a wide range of applications, from a casual inference to predictive analysis.
 
 *Liner Regression anomaly detection model will be implemented in the next steps of the projct*
 
-### Season Hybrid ESD Model
+### Seasonal Hybrid ESD Model
 
-Season Hybrid ESD (Extreme Studentized Deviant) is well know method for identifying anomales in times series which remains usefull and well performing. Season Hybrid ESD is built on statistical test, the *Grubbs test*, which defines a statistic for testing the hypothesis that there is a single outlier in a dataset. The ESD applies this test repeatedly, first to the most extreme outlier and the to the smaller outliers. ESD also accounts for seasonality in behavior vie time series decomposition.
+Season Hybrid ESD (Extreme Studentized Deviant) is well know method for identifying anomales in times series which remains usefull and well performing. Season Hybrid ESD is built on statistical test, the *Grubbs test*, which defines a statistic for testing the hypothesis that there is a single outlier in a dataset. The ESD applies this test repeatedly, first to the most extreme outlier and then to the smaller outliers. ESD also accounts for seasonality in behavior via time series decomposition.
 
 Visualizations of the Yahoo time series with actual anomalies(top) and anomalies found by ESD model.
 
-<div class="row">
-  <div class="column">
-    <img src="https://imgur.com/y1cyx0a.png">
-  </div>
-  <div class="column">
-    <img src = "https://imgur.com/SIHFsXV.png"/>
-  </div>
-</div>
+![](https://imgur.com/y1cyx0a.png){width=80%}
+
+![](https://imgur.com/SIHFsXV.png){width=80%}
 
 We can plot confustion matrix to quantify model performance.
 
-<p align="center">
-  <img src="https://imgur.com/5cZgO07.png">
-</p>
+![](https://imgur.com/5cZgO07.png){width=80%}
 
 ### ARIMA model
 
 *ARIMA anomaly detection model will be implemented in the next steps of the project*
+
 Implementation of ARIMA forecasting model can be found in [yahoo_notebook.Rmd](yahoo_notebook.Rmd)
 
 ### Random Forests
 
-*Random Forest model will be implemented in the next steps of the project*
+*Random Forest anomaly detection model will be implemented in the next steps of the project*
 
 ### Gradient Boosted Machine model
 
-*Gradient Boost Machine anomaly model will be implemented in the next steps of the project*
+*Gradient Boost Machine anomaly detection model will be implemented in the next steps of the project*
 
 ### LSTM Neural Network Approach
 A powerful type of neural network designed to handle sequence dependence is called recurrent neural networks. The Long Short-Term Memory network or LSTM network is a type of recurrent neural network used in deep learning because very large architectures can be successfully trained.
@@ -177,58 +164,52 @@ Before feeding the network with the data we needed to extend our dataset by assi
 
 Because of the LSTM neural network nature, we had to reshape our data one more time to get its final dimension equal to (initial length of dataframe x n x 1). It had to be done, because those types of networks opperates only on 3D vectors. The fraction of the training dataset can be seen at the picture.
 
-<p align="center">
-  <img src = "https://imgur.com/kT1A5pH.png"/>
-</p>
+![](https://imgur.com/kT1A5pH.png){width=30%}
+![](https://imgur.com/kT1A5pH.png){width=30%}
 
 The final architecture of the LSTM NN looks like:
-<p align="center">
-  <img src = "https://imgur.com/oK2PkrI.png"/>
-</p>
+
+![](https://imgur.com/oK2PkrI.png){width=80%}
 
 Its graphical ilustration can be seen below:
-<p align="center">
-  <img src = "https://imgur.com/339bam0.png"/>
-</p>
+
+![](https://imgur.com/339bam0.png){width=80%}
 
 We repeated learning process many times, trying different sizes of:
+
 * n - attributes which were value from previous timestep
 * window size for smoothing the signal
 * epochs 
 
 The best obtained result was for:
+
 * n = 5
 * window size = 1, so there was no need for simplyfing the signal
 * 100 epochs
 
 The learning process of network can be seen here:
-<p align="center">
-  <img src = "https://imgur.com/EhXDPQB.png"/>
-</p>
+
+![](https://imgur.com/EhXDPQB.png){width=80%}
 
 Than we tested our model on the data that wasn't used for learning enriched of data with anomalies. The final result:
-<p align="center">
-  <img src = "https://imgur.com/KllWyqt.png"/>
-</p>
+
+![](https://imgur.com/KllWyqt.png){width=80%}
 
 Than, to point the anomalies we tried to find the treshold which is the the absolute value of difference between real and predicted values. To do that we splited our results into two groups - anomaly data and normal data. The summarize of absolute errors for each group can be seen at the picture:
 
 group without anomalies
-<p align="center">
-  <img src = "https://imgur.com/F6gOrQT.png"/>
-</p>
+
+![](https://imgur.com/F6gOrQT.png){width=20%}
 
 group with anomalies
-<p align="center">
-  <img src = "https://imgur.com/znyw1Up.png"/>
-</p>
+
+![](https://imgur.com/znyw1Up.png){width=20%}
 
 If we take a look at given standatd deviation, means and max values the result looks quite promising and seems like we could differentiate those two groups without any problem. 
 
 However, there is one drawback. If we take a closer look at destribution of the absolute errors we can realize that those differences arises from the last quantiles of the absolute errors.
-<p align="center">
-  <img src = "https://imgur.com/rr2esUq.png"/>
-</p>
+
+![](https://imgur.com/rr2esUq.png){width=80%}
 
 In this case there is no possibility to detect all of the anomalies, because in the most cases their values are simillar to the predicted ones. We could expect that situation, because as it was written in the dataset description: *The anomalies are marked by humans and therefore may not be consistent.* 
 
