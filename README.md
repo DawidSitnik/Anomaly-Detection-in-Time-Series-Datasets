@@ -45,15 +45,15 @@ The is_anomaly field is a boolean indicating if the current value at a given tim
 
 The dataset before preprocessing:
 
-![](https://imgur.com/qkjA3oo.png){width=80%}
+![](https://imgur.com/qkjA3oo.png)
 
 Common exploratory data analysis tool in time-series and non-time series data are histograms. We will also look at the differenced data because we want to use our timestamp (time) axis.
 
 The histogram of untransformed data
 
-![](https://imgur.com/M2phBfi.png){width=80%}
+![](https://imgur.com/M2phBfi.png)
 
-![](https://imgur.com/ovzO405.png){width=80%}
+![](https://imgur.com/ovzO405.png)
 
 
 The histogram of untransformed data (top) shows normal distributions. This is to be expected given that the underlying sample (1st in our case) has no trend. If series had trend, we would difference the data to remove it, and this would transform the data to a more normal shaped distribution (bottom).
@@ -87,7 +87,7 @@ Same as with ADF test we can see how likely times series is autocorrelated depen
 
 We can graph the autocorrelation function to dig further into the data.
 
-![](https://imgur.com/kyFbXmR.png){width=80%}
+![](https://imgur.com/kyFbXmR.png)
 
 ### Data Preprocessing
 Before feeding the network with data we should preprocess our data. The first thing which comes to the mind is to detect trends and seasonality and delete it from the signal. However, in this case, there was no seasonality nor trend. Then we checked if the data doesn't contain any null values and outliers, but fortunately, it didn't.
@@ -101,11 +101,11 @@ As we can see, our signal is quite complex - it changes its values drastically, 
 
 The preprocessed signal can be seen at the picture below:
 
-![](https://imgur.com/oSG2zG7.png){width=80%}
+![](https://imgur.com/oSG2zG7.png)
 
 So finally description of our data is:
 
-![](https://imgur.com/BMTJWsV.png){width=30%}
+![](https://imgur.com/BMTJWsV.png)
 
 
 ### Statistical approach
@@ -114,7 +114,7 @@ We can find anomalies in time seris simply by searching for and extreme values o
 
 Outliers found by the statistical approach(right):
 
-![](https://imgur.com/XLVrwdh.png){width=80%}
+![](https://imgur.com/XLVrwdh.png)
 
 ### One-class Support Vector Machine
 
@@ -124,7 +124,7 @@ To feed OCSVM we have to transform our time series to vector space. For this, we
 
 Outliers detected by One-class SVM:
 
-![](https://imgur.com/HwL3zRv.png){width=80%}
+![](https://imgur.com/HwL3zRv.png)
 
 ### Seasonal Hybrid ESD Model
 
@@ -132,11 +132,11 @@ Season Hybrid ESD (Extreme Studentized Deviant) is well know method for identify
 
 Visualizations anomalies found by ESD model:
 
-![](https://imgur.com/WT4kzGW.png){width=80%}
+![](https://imgur.com/WT4kzGW.png)
 
 We can plot confustion matrix to quantify model performance.
 
-![](https://imgur.com/ikWarRw.png){width=60%}
+![](https://imgur.com/ikWarRw.png)
 
 ### Isolation forests
 
@@ -144,7 +144,7 @@ Isolation Forest is a variation of Random Forest algorithm which creates a rando
 
 Outliers detected by the Isolation forest alogrithm:
 
-![](https://imgur.com/M0jSZNl.png){width=80%}
+![](https://imgur.com/M0jSZNl.png)
 
 ### LSTM Neural Network Approach
 A powerful type of neural network designed to handle sequence dependence is called recurrent neural networks. The Long Short-Term Memory network or LSTM network is a type of recurrent neural network used in deep learning because very large architectures can be successfully trained.
@@ -153,17 +153,17 @@ Before feeding the network with the data we needed to extend our dataset by assi
 
 Because of the LSTM neural network nature, we had to reshape our data one more time to get its final dimension equal to (initial length of data frame x n x 1). It had to be done because those types of networks operate only on 3D vectors. The fraction of the training dataset can be seen in the picture.
 
-![](https://imgur.com/kT1A5pH.png){width=30%}
+![](https://imgur.com/kT1A5pH.png)
 
 The final architecture of the LSTM NN looks like:
 
-![](https://imgur.com/oK2PkrI.png"){width=80%}
+![](https://imgur.com/oK2PkrI.png")
 
-![](https://imgur.com/kT1A5pH.png){width=30%}
+![](https://imgur.com/kT1A5pH.png)
 
 Its graphical ilustration can be seen below:
 
-![](https://imgur.com/339bam0.png"){width=80%}
+![](https://imgur.com/339bam0.png")
 
 
 We repeated the learning process many times, trying different sizes of:
@@ -178,18 +178,18 @@ The best-obtained result was for:
 
 The learning process of network can be seen here:
 
-![](https://imgur.com/59ARm9m.png"){width=80%}
+![](https://imgur.com/59ARm9m.png")
 
 
 Signal prediction on training dataset:
 
-![](https://imgur.com/WbhzOD0.png"){width=80%}
+![](https://imgur.com/WbhzOD0.png")
 
 
 
 Signal prediction on testing dataset:
 
-![](https://imgur.com/Dx0f3ja.png"){width=80%}
+![](https://imgur.com/Dx0f3ja.png")
 
 
 The model isn't overtrained, as it can be seen at the pictures, signal predicted basing on the test dataset is as good as the one predicted on the training dataset.
@@ -198,12 +198,12 @@ Then, to point the anomalies we tried to find the threshold which is the absolut
 
 group without anomalies
 
-![](https://imgur.com/4HMz185.png"){width=30%}
+![](https://imgur.com/4HMz185.png")
 
 
 group with anomalies
 
-![](https://imgur.com/rwVLJJg.png"){width=30%}
+![](https://imgur.com/rwVLJJg.png")
 
 The max error for the group without anomalies equals to 0.151 when min error for a group with anomalies is 0.1639. It means, that we can easily split the difference between those two groups if we choose a tolerated error threshold sensibly.
 
