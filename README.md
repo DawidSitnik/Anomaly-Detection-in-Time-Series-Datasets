@@ -252,7 +252,7 @@ The LSTM experiment proves thet we can use deep neural network for anomaly predi
 
 If we would like to use this approach for different dataset we would probably have to change a treshold value. It could be done automatically by the function which minimizes F1 value and takes treshold as the parameter. 
 
-Another machine learning algirthm цу used to identify time-serise anomalies is Isolation Forest. It provides the best over all performance among methods that aren't based on deep learning. Algorithm is easily interpreatable, doesn't require much of preprocessing steps and is disgined specifically for detecting anomalies. Algorithms doesn't have major drawbacks which makes one of the most prefereble choice in our task.
+Another machine learning algirthm that we used to identify time-serise anomalies is Isolation Forest. It provides the best over all performance among methods that aren't based on deep learning. Algorithm is easily interpreatable, doesn't require much of preprocessing steps and is disgined specifically for detecting anomalies. Algorithms doesn't have major drawbacks which makes one of the most prefereble choice in our task.
 
 As a baseline we used interquartile distance with coefficient 1.5. This gives as a solid yet simple method for novelty detection. Accuracy of IQR approach was quite high, thus improving it could be a challanging task.
 
