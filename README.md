@@ -5,8 +5,8 @@
 
 * LSTM_approach.ipynb - Jupiter notebook in which LSTM solution is made
 * LSTM_approach.r - the same solution made in R with the extraction of the fragment responsible for learning LSTM network.
-* yahoo_notebook.Rmd - R notebook that contains statistcal methods, One-class SVM, ESD and Isolation Forests methods for time series anomaly detection.
-* yahoo_notebook.html - knited R notebook with evaludated results.
+* yahoo_notebook.Rmd - R notebook that contains statistical methods, One-class SVM, ESD and Isolation Forests methods for time series anomaly detection.
+* yahoo_notebook.html - knitted R notebook with evaluated results.
 
 ## The Aim of The Project
 The main goal is to detect anomalies in the time series dataset. As the dataset, we decided to choose data shared by Yahoo called *'A Benchmark Dataset for Time Series Anomaly Detection'*, which is the real traffic data from Yahoo servers. 
@@ -15,11 +15,11 @@ The data can be accessed from this URL:
 [Yahoo dataset](https://yahooresearch.tumblr.com/post/114590420346/a-benchmark-dataset-for-time-series-anomaly?fbclid=IwAR31SaUo48kFzUCeYPFDfVGRKyqYPW3vmY0XDuci7uIYM-XrrW86QXGerrY)
 
 ## Our Approach
-To detect anomalies we are going to create some models which will be learned on the dataset which doesn't consist of any anomalies. Then we will make predictions on the dataset which consists also the data with the anomaly. Assuming that our models will work properly, predictions in which values are much different than real values will be treated as anomalies.
+To detect anomalies we are going to create some models which will be learned on the dataset which doesn't consist of any anomalies. Then we will make predictions on the dataset which consists also of the data with the anomaly. Assuming that our models will work properly, predictions in which values are much different than real values will be treated as anomalies.
 
 In our project, we would like to compare classical approaches to modeling with a more modern one. The first group of solutions will be based on transforming dataset into its vector representation of time series (for example - values history for certain period with its eventual aggregation in smaller sub-windows in different variants) and then use one of the classical algorithms like linear regression, random forest classifier, etc. to create the model. In the second approach, we will use the LSTM neural network which will work only on historical values from the time series.
 
-Eventually, we will also try to find anomalies with ESD models. This model is mostly used for forecasting, but their application can be extended to anomaly detection.
+Eventually, we will also try to find anomalies with ESD models. This model is mostly used for forecasting, but its application can be extended to anomaly detection.
 
 ## Dataset
 This dataset is provided as part of the Yahoo! Webscope program, to be used for approved non-commercial research purposes by recipients who have signed a Data Sharing Agreement with Yahoo! Dataset contains real and synthetic time-series with labeled anomalies. Timestamps are replaced by integers with an increment of 1, where each data-point represents 1 hour worth of data. The anomalies are marked by humans and therefore may not be consistent.
@@ -47,7 +47,7 @@ The dataset before preprocessing:
 
 ![](https://imgur.com/qkjA3oo.png)
 
-Common exploratory data analysis tool in time-series and non-time series data are histograms. We will also look at the differenced data because we want to use our timestamp (time) axis.
+Common exploratory data analysis tools in time-series and non-time series data are histograms. We will also look at the differenced data because we want to use our timestamp (time) axis.
 
 The histogram of untransformed data
 
@@ -58,9 +58,9 @@ The histogram of untransformed data
 
 The histogram of untransformed data (top) shows normal distributions. This is to be expected given that the underlying sample (1st in our case) has no trend. If series had trend, we would difference the data to remove it, and this would transform the data to a more normal shaped distribution (bottom).
 
-Next, we would like to know if time-series is *stationary*. We do this because many traditional statistical time series models rely on time series with such characteristic. In general, time series is *stationary* when it has fairly stable statistical properties over time, particularly mean and variance. The Augmented Dickey-Fuller (ADF) test is the most commonly used metric to access a time series for stationary problems. That test focuses on whether the mean of a series is changing, a variance isn’t tested here. 
+Next, we would like to know if time-series is *stationary*. We do this because many traditional statistical time series models rely on time series with such characteristics. In general, time series is *stationary* when it has fairly stable statistical properties over time, particularly mean and variance. The Augmented Dickey-Fuller (ADF) test is the most commonly used metric to access a time series for stationary problems. That test focuses on whether the mean of a series is changing, a variance isn’t tested here. 
 
-ADF test result of one of the the Yahoo time series.
+ADF test result of one of the Yahoo time series.
 
 ```
     Augmented Dickey-Fuller Test
@@ -70,7 +70,7 @@ Dickey-Fuller = -10.364, Lag order = 11, p-value = 0.01
 alternative hypothesis: stationary
 ```
 
-Depending on the resulst of the test, null hypothesis can be rejected for a specific significance level - *p*-value. Conventionally, if *p*-value is less 0.05, the time series is likely stationany, whereas a *p* > 0.05 provides no such evidence.
+Depending on the result of the test, null hypothesis can be rejected for a specific significance level - *p*-value. Conventionally, if *p*-value is less 0.05, the time series is likely stationary, whereas a *p* > 0.05 provides no such evidence.
 
 <!-- Common exploartory times series methods is identifying where the series has a self-correlation. Self-corelation of a time series is the idea that a value in a time series at one give point in time has a correlation to the value at another point in time. Autocorrelation on the other hand asks more general question of whether there is a correlation between two points in a specific time series with a specific fixed distance between them.
 
@@ -99,7 +99,7 @@ df = (df - df.mean()) / (df.max() - df.min())
 
 As we can see, our signal is quite complex - it changes its values drastically, so we also have tried to smooth it a little bit using a rolling window technique trying different values of the window. The window size which gave us the best result was 5.
 
-The preprocessed signal can be seen at the picture below:
+The preprocessed signal can be seen in the picture below:
 
 ![](https://imgur.com/oSG2zG7.png)
 
@@ -172,9 +172,9 @@ The threshold value set to differentiate groups correctly is *12 * (standard dev
 
 ## Statistical approach
 
-We can find anomalies in time seris simply by searching for an extreme values or outliers. In `Dataset` chapter we build histograms of time series values. Most of time series had distrubutions close to normal. This means that we can use interquartile distance to determine the outliers.
+We can find anomalies in time series simply by searching for extreme values or outliers. In `Dataset` chapter we build histograms of time series values. Most of the time series had distributions close to normal. This means that we can use interquartile distance to determine the outliers.
 
-This approach has only one parameter which is IQR coefficient. IQR coefficient determines how far away from the first and third quartile we consider time series value as an outlier. A commonly used rule is that a data point is an outlier if it is $1.5 \cdot IQR$ above the third quartile or below the first quartile. Ilustration of the described outliers detection method:
+This approach has only one parameter which is IQR coefficient. IQR coefficient determines how far away from the first and third quartile we consider time series value as an outlier. A commonly used rule is that a data point is an outlier if it is $1.5 \cdot IQR$ above the third quartile or below the first quartile. Illustration of the described outliers detection method:
 
 ![](https://imgur.com/pWiSM7N.png)
 
@@ -186,23 +186,23 @@ Confusion matrix:
 
 ![](https://imgur.com/pdcjbko.png)
 
-Precision and recall metrics are 96.69% and 100% repspectively. This means that our model is able identify all the outliers present in the dataset, but it is correct in 96.69% of the time.
+Precision and recall metrics are 96.69% and 100% respectively. This means that our model is able to identify all the outliers present in the dataset, but it is correct in 96.69% of the time.
 
 ## One-class Support Vector Machine
 
-One-class SVM is an extension of the original SVM algorithms that learns a decision boudary that tries to achive the maximum separation between the sample of the known class and the origin. Algorithm allows only small part of the dataset to lie on the other side of the decision boudary. These points are considered as outliers.
+One-class SVM is an extension of the original SVM algorithms that learns a decision boundary that tries to achieve the maximum separation between the sample of the known class and the origin. Algorithm allows only a small part of the dataset to lie on the other side of the decision boundary. These points are considered as outliers.
 
-One-class SVM can only be applied to a set of vectors which means that we need to figure out how to convert time series so that it can be fed to OCSVM. We do this by unfolding the time series into a phase space using a time-delay embeddings. Time series embedding vector process:
+One-class SVM can only be applied to a set of vectors which means that we need to figure out how to convert time series so that it can be fed to OCSVM. We do this by unfolding the time series into a phase space using time-delay embeddings. Time series embedding vector process:
 
-$$x_E(t) = [x(t-E+1) x(x-E+2) \dotsb x(t)]$$, where $x_E(t)$ is an embedding vector at time $t$ and $E$ is *embeding dimesion*.
+$$x_E(t) = [x(t-E+1) x(x-E+2) \dotsb x(t)]$$, where $x_E(t)$ is an embedding vector at time $t$ and $E$ is *embedding dimension*.
 
 Therefore, a time series can be converted to a set of vectors $T_E(N)=\{x_E(t), t=E \dotsb N\}$.
 
-After convertin a time-series into a set of vectors we run OCSVM algorithm on them. If algorithms suggests that embeddint vector $x_E(t)$ is an outlier all points from this this embedding at set 1(this marks time-series values as an outlier in times series data frame).
+After converting a time-series into a set of vectors we run OCSVM algorithm on them. If algorithm suggests that embedding vector $x_E(t)$ is an outlier all points from this embedding at set 1(this marks time-series values as an outlier in times series data frame).
 
 We set *embeding dimesions* to 5 as it gives an optimistic trade-off between detection rate and false alarm.
 
-Last hyperparamter that we consider is $\nu$. It is a regularization paramter of SVM algorithm and it can be interpreted as a an upper bound on the fraction of margin errors and a lower bound of the fraction of support vectors relative to the number of training examples. We set this paramter to 1% as we expect fairly small number of outliers in the time-series.
+Last hyperparameter that we consider is $\nu$. It is a regularization parameter of SVM algorithm and it can be interpreted as an upper bound on the fraction of margin errors and a lower bound of the fraction of support vectors relative to the number of training examples. We set this parameter to 1% as we expect a fairly small number of outliers in the time-series.
 
 Outliers detected by One-class SVM:
 
@@ -212,11 +212,11 @@ Confusion matrix:
 
 ![](https://imgur.com/JdzheZZ.png)
 
-Precision of the OCSVM is 100%, recall - 98.66%. Compared to shallow statistical approach OCSVM algorithms is correct in more cases. This results are easy to expalain as OCSVM is much more complex and robust algorithm which combined with embeding space can be applied to time-seris.
+Precision of the OCSVM is 100%, recall - 98.66%. Compared to shallow statistical approach OCSVM algorithm is correct in more cases. These results are easy to explain as OCSVM is much more complex and robust algorithm which combined with embedding space can be applied to time-series.
 
 ## Seasonal Hybrid ESD Model
 
-Season Hybrid ESD (Extreme Studentized Deviant) is well know method for identifying anomales in times series which remains usefull and well performing. Season Hybrid ESD is built on statistical test, the *Grubbs test*, which defines a statistic for testing the hypothesis that there is a single outlier in a dataset. The ESD applies this test repeatedly, first to the most extreme outlier and then to the smaller outliers. ESD also accounts for seasonality in behavior via time series decomposition.
+Season Hybrid ESD (Extreme Studentized Deviant) is well known method for identifying anomalies in times series which remains useful and well-performing. Season Hybrid ESD is built on a statistical test, the *Grubbs test*, which defines a statistic for testing the hypothesis that there is a single outlier in a dataset. The ESD applies this test repeatedly, first to the most extreme outlier and then to the smaller outliers. ESD also accounts for seasonality in behavior via time series decomposition.
 
 Visualization of anomalies found by ESD model:
 
@@ -230,13 +230,13 @@ Precision of the ESD model - 100%, recall - 98.52%.
 
 ## Isolation forests
 
-Isolation Forest is a variation of Random Forest algorithm which creates a random trees until each value is in separate leaf. This random parititioning crates much shorter paths for novelties because instaces with distiguishable are mote likely to be separated in early stages of the partitiong. Therefore, when random forests produce shorter path for some values, then this value can be considered as an anomaly. We decide whether or value is an anomaly or not based on the mean of the depth of the leaves . 
+Isolation Forest is a variation of Random Forest algorithm which creates random trees until each value is in separate leaf. This random partitioning crates much shorter paths for novelties because instances with distinguishable are mote likely to be separated in the early stages of the partitioning. Therefore, when random forests produce shorter paths for some values, then this value can be considered as an anomaly. We decide whether or value is an anomaly or not based on the mean of the depth of the leaves. 
 
-Visuazalization that demostrates the idea that anomalies are separtated in early stages of the Isolation Forest under random partitiong:
+Visualization that demonstrates the idea that anomalies are separated in early stages of the Isolation Forest under random partitioning:
 
 ![](https://imgur.com/k5O3yZj.png)
 
-Outliers detected by the Isolation forest alogrithm:
+Outliers detected by the Isolation forest algorithm:
 
 ![](https://imgur.com/M0jSZNl.png)
 
@@ -248,12 +248,13 @@ Precision of the Isolation Forests approach is 100%, recall - 99.71%.
 
 ## Summary
 
-The LSTM experiment proves thet we can use deep neural network for anomaly prediction also. Even though it is not the classical approach for anomaly detection it works properly as well. 
+The LSTM experiment proves that we can use deep neural network for anomaly prediction also. Even though it is not the classical approach for anomaly detection it works properly as well. 
 
-If we would like to use this approach for different dataset we would probably have to change a treshold value. It could be done automatically by the function which minimizes F1 value and takes treshold as the parameter. 
+If we would like to use this approach for different dataset we would probably have to change a threshold value. It could be done automatically by the function which minimizes F1 value and takes treshold as the parameter. 
 
-Another machine learning algirthm that we used to identify time-serise anomalies is Isolation Forest. It provides the best over all performance among methods that aren't based on deep learning. Algorithm is easily interpreatable, doesn't require much of preprocessing steps and is disgined specifically for detecting anomalies. Algorithms doesn't have major drawbacks which makes one of the most prefereble choice in our task.
+As a baseline we used interquartile distance with coefficient 1.5. This gives as a solid yet simple method for novelty detection. Accuracy of IQR approach was quite high, thus improving it could be a challenging task.
 
-As a baseline we used interquartile distance with coefficient 1.5. This gives as a solid yet simple method for novelty detection. Accuracy of IQR approach was quite high, thus improving it could be a challanging task.
+One-class Support Vector Machine improved recall of anomaly detection by 2%. This is a rather high improvement as our statistical approach is already pretty good at finding anomalies. SVM is a more sophisticated algorithm and it is extensively used in classification and regression tasks because of its high accuracy and clear interpretation.
 
-One-class Support Vector Machine imporved recall of anomaly detaction by 2%. This is a rather high improvemnt as our statistical appraoch is already pretty good at finding anomalies. SVM is more sophisticated algorithm and it is extensively used in classification and regression task because of it's high accuracy and clear interpretation.
+Another machine learning algorithm that we used to identify time-series anomalies is Isolation Forest. It provides the best overall performance among methods that aren't based on deep learning. Algorithm is easily interpretable, doesn't require much of preprocessing steps, and is designed specifically for detecting anomalies. Isolation Forest doesn't have major drawbacks which makes it one of the most preferable choices in our task.
+
