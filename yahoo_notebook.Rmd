@@ -189,7 +189,7 @@ pacf(series$value)
 
 ## Statistical approach
 
-We can identify anomalies based on the 5% percentile values.
+We can identify anomalies using interquartile distance
 ```{r, warning=FALSE}
 anomalies_STAT <- function(series) {
   df_stat_anom <- series %>%
@@ -203,17 +203,55 @@ anomalies_STAT <- function(series) {
   df_stat_anom$is_low_percentile
 }
 
-series_stat <- series
-series_stat["is_anomaly"] <- anomalies_STAT(series)
-plot_ts(series, "True anomalies")
-plot_ts(series_stat, "Statistical anomalies")
+display_anomalies <- function(series, detection_func) {
+  series_stat <- series
+  series_stat$is_anomaly <- 0
+  series_stat["is_anomaly"] <- detection_func(series)
+  plot_ts(series_stat)
+}
+
+display_anomalies(series, anomalies_STAT)
 ```
+
+Plot confusion matrix
+```{r}
+plot_conf_mat <- function(truth, prediction) {
+  labels = data.frame("truth" = as.factor(truth), 
+                      "prediction" = as.factor(prediction))
+  labels %>% conf_mat(truth, prediction) %>% autoplot(type = "heatmap")
+}
+
+plot_conf_mat(series$is_anomaly, series_stat$is_anomaly)
+```
+
+Calculate recall
+```{r}
+print_recall <- function(truth, prediction) {
+    labels = data.frame("truth" = as.factor(truth), 
+                      "prediction" = as.factor(prediction))
+    labels %>% recall(truth, prediction) %>% print()
+}
+
+print_recall(series$is_anomaly, series_stat$is_anomaly)
+```
+
+Calculate precision
+```{r}
+print_precision <- function(truth, prediction) {
+      labels = data.frame("truth" = as.factor(truth), 
+                      "prediction" = as.factor(prediction))
+    labels %>% precision(truth, prediction) %>% print()
+}
+
+print_precision(series$is_anomaly, series_stat$is_anomaly)
+```
+
 
 ## One Class SVM
 
 Embeding time series values
 ```{r}
-series_embeddings <- embed(series$value, 4)
+series_embeddings <- embed(series$value, 5)
 data.frame(series_embeddings)
 ```
 
@@ -231,13 +269,28 @@ Identifying outliers using above model
 pred_ocsvm <- predict(model_ocsmv, series_embeddings)
 
 series_ocsvm <- series
+series_ocsvm$is_anomaly <- 0
 for (idx in which(pred_ocsvm == FALSE)){
   series_ocsvm$is_anomaly[idx:idx+4] = 1
 }
 plot_ts(series, "True anomalies")
-plot_ts(series_ocsvm, "SVM anomalies")
+plot_ts(series_ocsvm, "One-class SVM anomalies")
 ```
 
+Confusion matrix
+```{r}
+plot_conf_mat(series$is_anomaly, series_ocsvm$is_anomaly)
+```
+
+Recall
+```{r}
+print_recall(series$is_anomaly, series_ocsvm$is_anomaly)
+```
+
+Precisions
+```{r}
+print_precision(series$is_anomaly, series_ocsvm$is_anomaly)
+```
 
 ## Seasonal Hybrid ESD model
 
@@ -268,30 +321,28 @@ anomalies_ESD <- function(series) {
 # Plot actual anomalies
 plot_ts(series) + ggtitle("Actual anomalies")
 
+series_esd <- series
+series_esd$is_anomaly <- 0
+
 # Plot Hybrid ESD anomalies
-res = anomalies_ESD(series)
-res$plot + ggtitle("Hybrid ESD anomalies")
+anoms_esd = anomalies_ESD(series)
+series_esd$is_anomaly[as.numeric(series$timestamp) %in% as.numeric(anoms_esd$anoms$timestamp)] = 1
+anoms_esd$plot + ggtitle("Hybrid ESD anomalies")
 ```
 
-Plot confusion matrix.
+Confusion matrix
+```{r}
+plot_conf_mat(series$is_anomaly, series_esd$is_anomaly)
+```
 
-```{r, cache=TRUE}
-plot_ESD_confusion <- function(series, predicted) {
-  real_series <- series$is_anomaly
-  
-  # Fill prediction series
-  predicted_series <- vector("integer", length(real_series))
-  predicted_series[match(as.numeric(predicted$anoms$timestamp),
-                         as.numeric(series$timestamp))] <- 1
-  
-  anomalies_df <-
-    data.frame(as.factor(real_series), as.factor(predicted_series))
-  colnames(anomalies_df) <- c("real", "predicted")
-  cm <- conf_mat(anomalies_df, real, predicted)
-  autoplot(cm, type = "heatmap")
-}
+Recall
+```{r}
+print_recall(series$is_anomaly, series_esd$is_anomaly)
+```
 
-plot_ESD_confusion(series, res)
+Precisions
+```{r}
+print_precision(series$is_anomaly, series_esd$is_anomaly)
 ```
 
 ## ARIMA model
