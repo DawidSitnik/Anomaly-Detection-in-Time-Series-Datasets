@@ -3,29 +3,28 @@
 
 **File Description**
 
-* LSTM_approach.ipynb - jupyter notebook in which the whole solution is made
-* LSTM_approach.r - the same solution made in R with extraction of the fragment responsible for learning LSTM network.
-* yahoo_notebook.Rmd - R notebook with Linear Regressin, Random Forests, Gradient Boosted Machine, ESD and ARIMA models.
-* yahoo_notebook.html - knited R notebook with model and tests evaluation results.
+* LSTM_approach.ipynb - Jupiter notebook in which LSTM solution is made
+* LSTM_approach.r - the same solution made in R with the extraction of the fragment responsible for learning LSTM network.
+* yahoo_notebook.Rmd - R notebook that contains statistcal methods, One-class SVM and ESD methods for time series anomaly detection.
+* yahoo_notebook.html - knited R notebook with evaludated results.
 
 ## The Aim of The Project
-The main goal is to detect anomalies in time series dataset. As the dataset we decied to choose data shared by Yahoo called *'A Benchmark Dataset for Time Series Anomaly Detection'*, which is the real traffic data from Yahoo servers. 
+The main goal is to detect anomalies in the time series dataset. As the dataset, we decided to choose data shared by Yahoo called *'A Benchmark Dataset for Time Series Anomaly Detection'*, which is the real traffic data from Yahoo servers. 
 
-The data can be accessed from this url:
+The data can be accessed from this URL:
 [Yahoo dataset](https://yahooresearch.tumblr.com/post/114590420346/a-benchmark-dataset-for-time-series-anomaly?fbclid=IwAR31SaUo48kFzUCeYPFDfVGRKyqYPW3vmY0XDuci7uIYM-XrrW86QXGerrY)
 
 ## Our Approach
-To detect anomalies we are going to create some models whihch will be learned on the dataset which doesn't consist any anomalies. Than we will make predictions on the dataset which consists also the data with anomaly. Assuming that our models will work properly, predictions which values are much different than real values will be treated as anomalies.
+To detect anomalies we are going to create some models which will be learned on the dataset which doesn't consist of any anomalies. Then we will make predictions on the dataset which consists also the data with the anomaly. Assuming that our models will work properly, predictions in which values are much different than real values will be treated as anomalies.
 
-In our project we would like to compare classical approaches of modeling with more modern one. The first group of sollutions will be based on transforming dataset into its vector representation of time series (for example - values history for certain period with its eventual aggregation in smaller sub-windows in different variants) and then use one of classical alghoritms like linear regression, random forest classifier etc. to create the model. In the second approach we will use LSTM neural network which will work only on historical values from the time series.
+In our project, we would like to compare classical approaches to modeling with a more modern one. The first group of solutions will be based on transforming dataset into its vector representation of time series (for example - values history for certain period with its eventual aggregation in smaller sub-windows in different variants) and then use one of the classical algorithms like linear regression, random forest classifier, etc. to create the model. In the second approach, we will use the LSTM neural network which will work only on historical values from the time series.
 
-Eventually, we will also try to find anomalies with ARIMA and ESD models. This models are mostly used for forecasting, but their application can be extended to anomaly detection.
+Eventually, we will also try to find anomalies with ESD models. This model is mostly used for forecasting, but their application can be extended to anomaly detection.
 
 ## Dataset
-This dataset is provided as part of the Yahoo! Webscope program, to be used for approved non-commercial research purposes by recipients who have signed a Data Sharing Agreement with Yahoo! Dataset contains real and synthetic time-series with labeled anomalies. Timestamps are replaced by integers with the increment of 1, where each data-point represents 1 hour worth of data. The anomalies are marked by humans and therefore may not be consistent.
+This dataset is provided as part of the Yahoo! Webscope program, to be used for approved non-commercial research purposes by recipients who have signed a Data Sharing Agreement with Yahoo! Dataset contains real and synthetic time-series with labeled anomalies. Timestamps are replaced by integers with an increment of 1, where each data-point represents 1 hour worth of data. The anomalies are marked by humans and therefore may not be consistent.
 
 **The dataset fields are:**
-
 * *timestamp*
 * *value*
 * *is_anomaly*
@@ -44,13 +43,9 @@ The is_anomaly field is a boolean indicating if the current value at a given tim
 6         6  5.73          0
 ```
 
-The dataset consists of 10 independent .csv files which combined signal is presented at the picture below:  
+The dataset before preprocessing:
 
-![](https://imgur.com/FGLEwGT.png){width=80%}
-
-Example of one of the signals with highlighted anomalies:
-
-![](https://imgur.com/y1cyx0a.png){width=80%}
+![](https://imgur.com/qkjA3oo.png){width=80%}
 
 Common exploratory data analysis tool in time-series and non-time series data are histograms. We will also look at the differenced data because we want to use our timestamp (time) axis.
 
@@ -61,9 +56,9 @@ The histogram of untransformed data
 ![](https://imgur.com/ovzO405.png){width=80%}
 
 
-The histogram of untransformed data (top) shows normal distributions. This is to be expected given that the underlying sample (13th in our case) has no trend. If series had trend, we would difference the data to remove it, and this would transform the data to a more normal shaped distribution (bottom).
+The histogram of untransformed data (top) shows normal distributions. This is to be expected given that the underlying sample (1st in our case) has no trend. If series had trend, we would difference the data to remove it, and this would transform the data to a more normal shaped distribution (bottom).
 
-Next, we would like to know if time-series is *stationary*. We do this because many traditional statistical time series models rely on time series being stationary. In general, time series is *stationary* when it has fairly stable statistical properties over time, particularly mean and variance. The Augmented Dickey-Fuller (ADF) test is the most commonly used metric to access a time series for stationary problems. That test focuses on whether the mean of a series is changing, a variance isn’t tested here. 
+Next, we would like to know if time-series is *stationary*. We do this because many traditional statistical time series models rely on time series with such characteristic. In general, time series is *stationary* when it has fairly stable statistical properties over time, particularly mean and variance. The Augmented Dickey-Fuller (ADF) test is the most commonly used metric to access a time series for stationary problems. That test focuses on whether the mean of a series is changing, a variance isn’t tested here. 
 
 ADF test result of one of the the Yahoo time series.
 
@@ -77,7 +72,7 @@ alternative hypothesis: stationary
 
 Depending on the resulst of the test, null hypothesis can be rejected for a specific significance level - *p*-value. Conventionally, if *p*-value is less 0.05, the time series is likely stationany, whereas a *p* > 0.05 provides no such evidence.
 
-Common exploartory times series methods is identifying where the series has a self-correlation. Self-corelation of a time series is the ideat that a value in a time series at one give point in time has a correlation to the value at another point in time. Autocorrelation on the other hand asks more general question of whether there is a correlation between two points in a specific time series witha a specific fixed distance between them.
+Common exploartory times series methods is identifying where the series has a self-correlation. Self-corelation of a time series is the idea that a value in a time series at one give point in time has a correlation to the value at another point in time. Autocorrelation on the other hand asks more general question of whether there is a correlation between two points in a specific time series with a specific fixed distance between them.
 
 We can apply the Box-Pierce test to the data to know whether or not the data is autocorrelated.
 
@@ -94,127 +89,130 @@ We can graph the autocorrelation function to dig further into the data.
 
 ![](https://imgur.com/kyFbXmR.png){width=80%}
 
-
-The partial autocorrelation function is another tool for revealing the interpollations in at time seris. However, its interpolation is much less intutive than that of the autocorrelation function. One of the definitions of the partial autocorrelation functions goes as follow:
-
-> The partial correlation between two random variables, X and Y, is the correlation that remains after accounting for the correlation shown by X and Y with all other variables. In the case of time series, the partial autocorrelation at lag k is the correlation between all data points that are exactly k steps apart, after accounting for their correlation with the data between those k steps.
-
-The particular value of partial autocorrelation is that it helps to identify the number of *autoregressions* coefficients, which are used in ARIMA model.
-
-We can visualize partial autocorrelation function at each lag.
-
-![](https://imgur.com/gWQenZu.png){width=80%}
-
 ### Data Preprocessing
-Before feeding the network with data we should preprocess our data. The first thing which comes to the mind is to detect trends and seasonality and delete it from the signal. However, in this case there is no seasonality nor trend, as we can see at the picture. 
+Before feeding the network with data we should preprocess our data. The first thing which comes to the mind is to detect trends and seasonality and delete it from the signal. However, in this case, there was no seasonality nor trend. Then we checked if the data doesn't contain any null values and outliers, but fortunately, it didn't.
 
 Another thing which can be done is data normalization. In our purpose we decided to normalize our data due to this formule:
 ```
 df = (df - df.mean()) / (df.max() - df.min())
 ```
+
+As we can see, our signal is quite complex - it changes its values drastically, so we also have tried to smooth it a little bit using a rolling window technique trying different values of the window. The window size which gave us the best result was 5.
+
+The preprocessed signal can be seen at the picture below:
+
+![](https://imgur.com/oSG2zG7.png){width=80%}
+
 So finally description of our data is:
 
-![](https://imgur.com/5d2GGWd.png){width=20%}
-
-We also have checked if the data doesn't contain any null falues and outlayers, but fortunatelly it didn't.
-
-As we can see, our signal is quite complex - it changes its values drastically, so we also have tried to smooth it a little bit using rooling window technique trying different values of window. The signal smoothed with window set to 5, can be seen at the picture bellow:
-
-![](https://imgur.com/G9gw5w4.png){width=80%}
+![](https://imgur.com/BMTJWsV.png){width=30%}
 
 
-### Liner Regression
+### Statistical approach
 
-The liner regression model is one the most common method for identifying and quantifying the relashionship between a dependant variables and a single independent variables. This model has a wide range of applications, from a casual inference to predictive analysis.
+We can find anomalies in time seris simply by searching for and extreme values or outliers. In `Dataset` chapter we build histograms of time seris values and most of time series had distrubutions close to normal. This means that we can use interquartile distance to determine the outliers.
 
-*Liner Regression anomaly detection model will be implemented in the next steps of the projct*
+Outliers found by the statistical approach(right):
+
+![](https://imgur.com/XLVrwdh){width=80%}
+
+### One-class Support Vector Machine
+
+One-class SVM is an extension of the original SVM algorithms that learns a decision boudary that tries to achive the maximu separation between the sample the known class and the origin. Algorithm allows only small part of the dataset to lie on the other side of the decision boudary. These points are considered as outliers.
+
+To feed OCSVM we have to transform our time series to vector space. For this, we make use of the time delay embeddings. 
+
+Outliers detected by One-class SVM:
+
+![](https://imgur.com/HwL3zRv){width=80%}
 
 ### Seasonal Hybrid ESD Model
 
 Season Hybrid ESD (Extreme Studentized Deviant) is well know method for identifying anomales in times series which remains usefull and well performing. Season Hybrid ESD is built on statistical test, the *Grubbs test*, which defines a statistic for testing the hypothesis that there is a single outlier in a dataset. The ESD applies this test repeatedly, first to the most extreme outlier and then to the smaller outliers. ESD also accounts for seasonality in behavior via time series decomposition.
 
-Visualizations of the Yahoo time series with actual anomalies(top) and anomalies found by ESD model.
+Visualizations anomalies found by ESD model:
 
-![](https://imgur.com/y1cyx0a.png){width=80%}
-
-![](https://imgur.com/SIHFsXV.png){width=80%}
+![](https://imgur.com/WT4kzGW){width=50%}
 
 We can plot confustion matrix to quantify model performance.
 
-![](https://imgur.com/5cZgO07.png){width=80%}
+![](https://imgur.com/ikWarRw){width=60%}
 
-### ARIMA model
+### Isolation forests
 
-*ARIMA anomaly detection model will be implemented in the next steps of the project*
+Isolation Forest is a variation of Random Forest algorithm which creates a random trees until each values is in separate leaf. Outlier are mostly isolated in early stages of the algorithm. Based on the mean of the depth of the leaves we decide whether or value is an anomaly or not. 
 
-Implementation of ARIMA forecasting model can be found in [yahoo_notebook.Rmd](yahoo_notebook.Rmd)
+Outliers detected by the Isolation forest alogrithm:
 
-### Random Forests
-
-*Random Forest anomaly detection model will be implemented in the next steps of the project*
-
-### Gradient Boosted Machine model
-
-*Gradient Boost Machine anomaly detection model will be implemented in the next steps of the project*
+![](https://imgur.com/M0jSZNl){width=80%}
 
 ### LSTM Neural Network Approach
 A powerful type of neural network designed to handle sequence dependence is called recurrent neural networks. The Long Short-Term Memory network or LSTM network is a type of recurrent neural network used in deep learning because very large architectures can be successfully trained.
 
-Before feeding the network with the data we needed to extend our dataset by assigning new attributes to each value. The new attributes are previous values of time series, so for value recorded at time t we extended it of values from t-1, t-2 ... t-n. In this case we got dataframe of size (initial length of dataframe x n). We couldn't create all of the attributes for last n observations from each subdataset so we decided to not include them in our training dataset. 
+Before feeding the network with the data we needed to extend our dataset by assigning new attributes to each value. The new attributes are previous values of time series, so for value recorded at time t, we extended it of values from t-1, t-2 ... t-n. In this case, we got a data frame of size (initial length of data frame x n). We couldn't create all of the attributes for last n observations from each sub dataset so we decided to not include them in our training dataset. 
 
-Because of the LSTM neural network nature, we had to reshape our data one more time to get its final dimension equal to (initial length of dataframe x n x 1). It had to be done, because those types of networks opperates only on 3D vectors. The fraction of the training dataset can be seen at the picture.
+Because of the LSTM neural network nature, we had to reshape our data one more time to get its final dimension equal to (initial length of data frame x n x 1). It had to be done because those types of networks operate only on 3D vectors. The fraction of the training dataset can be seen in the picture.
 
-![](https://imgur.com/kT1A5pH.png){width=30%}
 ![](https://imgur.com/kT1A5pH.png){width=30%}
 
 The final architecture of the LSTM NN looks like:
 
-![](https://imgur.com/oK2PkrI.png){width=80%}
+![](https://imgur.com/oK2PkrI.png"){width=80%}
+
+![](https://imgur.com/kT1A5pH.png){width=30%}
 
 Its graphical ilustration can be seen below:
 
-![](https://imgur.com/339bam0.png){width=80%}
+![](https://imgur.com/339bam0.png"){width=80%}
 
-We repeated learning process many times, trying different sizes of:
 
-* n - attributes which were value from previous timestep
+We repeated the learning process many times, trying different sizes of:
+* n - attributes which were value from the previous timestep
 * window size for smoothing the signal
 * epochs 
 
-The best obtained result was for:
-
-* n = 5
-* window size = 1, so there was no need for simplyfing the signal
-* 100 epochs
+The best-obtained result was for:
+* lookback n = 5
+* smoothing window size = 5
+* 20 epochs
 
 The learning process of network can be seen here:
 
-![](https://imgur.com/EhXDPQB.png){width=80%}
+![](https://imgur.com/59ARm9m.png"){width=80%}
 
-Than we tested our model on the data that wasn't used for learning enriched of data with anomalies. The final result:
 
-![](https://imgur.com/KllWyqt.png){width=80%}
+Signal prediction on training dataset:
 
-Than, to point the anomalies we tried to find the treshold which is the the absolute value of difference between real and predicted values. To do that we splited our results into two groups - anomaly data and normal data. The summarize of absolute errors for each group can be seen at the picture:
+![](https://imgur.com/WbhzOD0.png"){width=80%}
+
+
+
+Signal prediction on testing dataset:
+
+![](https://imgur.com/Dx0f3ja.png"){width=80%}
+
+
+The model isn't overtrained, as it can be seen at the pictures, signal predicted basing on the test dataset is as good as the one predicted on the training dataset.
+
+Then, to point the anomalies we tried to find the threshold which is the absolute value of the difference between real and predicted values. To do that we split our results into two groups - anomaly data and normal data. The summarize of absolute errors for each group can be seen at the picture:
 
 group without anomalies
 
-![](https://imgur.com/F6gOrQT.png){width=20%}
+![](https://imgur.com/4HMz185.png"){width=30%}
+
 
 group with anomalies
 
-![](https://imgur.com/znyw1Up.png){width=20%}
+![](https://imgur.com/rwVLJJg.png"){width=30%}
 
-If we take a look at given standatd deviation, means and max values the result looks quite promising and seems like we could differentiate those two groups without any problem. 
+The max error for the group without anomalies equals to 0.151 when min error for a group with anomalies is 0.1639. It means, that we can easily split the difference between those two groups if we choose a tolerated error threshold sensibly.
 
-However, there is one drawback. If we take a closer look at destribution of the absolute errors we can realize that those differences arises from the last quantiles of the absolute errors.
+The threshold value set to differentiate groups correctly is *12 * (standard deviation of the whole dataset)* what equals to 1.559.
 
-![](https://imgur.com/rr2esUq.png){width=80%}
 
-In this case there is no possibility to detect all of the anomalies, because in the most cases their values are simillar to the predicted ones. We could expect that situation, because as it was written in the dataset description: *The anomalies are marked by humans and therefore may not be consistent.* 
+### Summary
 
-The best possible result we could get was positively finding 30 anomalies out of 160, at the same time not classyfing any normal value as anomaly. This result was obtained for treshold equaled to 30. 
+The experiment proves thet we can use deep neural network for anomaly prediction also. Even though it is not the classical approach for anomaly detection it works properly as well. 
 
-To detect more anomalies we could try to escalate the treshold value, but we would have to pay the cost of classyfing normal data as anomalies. 
+If we would like to use this approach for different dataset we would probably have to change a treshold value. It could be done automatically by the function which minimizes F1 value and takes treshold as the parameter. 
 
-To obtain better results we could try to define anomalies on our own, looking at its values and gradients. 
