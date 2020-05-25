@@ -5,7 +5,7 @@
 
 * LSTM_approach.ipynb - Jupiter notebook in which LSTM solution is made
 * LSTM_approach.r - the same solution made in R with the extraction of the fragment responsible for learning LSTM network.
-* yahoo_notebook.Rmd - R notebook that contains statistcal methods, One-class SVM and ESD methods for time series anomaly detection.
+* yahoo_notebook.Rmd - R notebook that contains statistcal methods, One-class SVM, ESD and Isolation Forests methods for time series anomaly detection.
 * yahoo_notebook.html - knited R notebook with evaludated results.
 
 ## The Aim of The Project
@@ -114,7 +114,7 @@ We can find anomalies in time seris simply by searching for and extreme values o
 
 Outliers found by the statistical approach(right):
 
-![](https://imgur.com/XLVrwdh){width=80%}
+![](https://imgur.com/XLVrwdh.png){width=80%}
 
 ### One-class Support Vector Machine
 
@@ -124,7 +124,7 @@ To feed OCSVM we have to transform our time series to vector space. For this, we
 
 Outliers detected by One-class SVM:
 
-![](https://imgur.com/HwL3zRv){width=80%}
+![](https://imgur.com/HwL3zRv.png){width=80%}
 
 ### Seasonal Hybrid ESD Model
 
@@ -132,11 +132,11 @@ Season Hybrid ESD (Extreme Studentized Deviant) is well know method for identify
 
 Visualizations anomalies found by ESD model:
 
-![](https://imgur.com/WT4kzGW){width=50%}
+![](https://imgur.com/WT4kzGW.png){width=80%}
 
 We can plot confustion matrix to quantify model performance.
 
-![](https://imgur.com/ikWarRw){width=60%}
+![](https://imgur.com/ikWarRw.png){width=60%}
 
 ### Isolation forests
 
@@ -144,7 +144,7 @@ Isolation Forest is a variation of Random Forest algorithm which creates a rando
 
 Outliers detected by the Isolation forest alogrithm:
 
-![](https://imgur.com/M0jSZNl){width=80%}
+![](https://imgur.com/M0jSZNl.png){width=80%}
 
 ### LSTM Neural Network Approach
 A powerful type of neural network designed to handle sequence dependence is called recurrent neural networks. The Long Short-Term Memory network or LSTM network is a type of recurrent neural network used in deep learning because very large architectures can be successfully trained.
