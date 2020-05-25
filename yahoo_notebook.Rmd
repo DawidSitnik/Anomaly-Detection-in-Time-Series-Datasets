@@ -137,7 +137,7 @@ plot_ts(series)
 ```
 
 
-Let's add some histograms.
+Let's add some histograms
 
 ```{r}
 plot_hist <- function(series, binsize = 1) {
@@ -203,14 +203,11 @@ anomalies_STAT <- function(series) {
   df_stat_anom$is_low_percentile
 }
 
-display_anomalies <- function(series, detection_func) {
-  series_stat <- series
-  series_stat$is_anomaly <- 0
-  series_stat["is_anomaly"] <- detection_func(series)
-  plot_ts(series_stat)
-}
+series_stat <- series
+series_stat$is_anomaly <- 0
+series_stat["is_anomaly"] <- anomalies_STAT(series)
+plot_ts(series_stat)
 
-display_anomalies(series, anomalies_STAT)
 ```
 
 Plot confusion matrix
@@ -221,18 +218,7 @@ plot_conf_mat <- function(truth, prediction) {
   labels %>% conf_mat(truth, prediction) %>% autoplot(type = "heatmap")
 }
 
-plot_conf_mat(series$is_anomaly, series_stat$is_anomaly)
-```
-
-Calculate recall
-```{r}
-print_recall <- function(truth, prediction) {
-    labels = data.frame("truth" = as.factor(truth), 
-                      "prediction" = as.factor(prediction))
-    labels %>% recall(truth, prediction) %>% print()
-}
-
-print_recall(series$is_anomaly, series_stat$is_anomaly)
+plot_conf_mat(series$is_anomaly, anomalies_STAT(series))
 ```
 
 Calculate precision
@@ -246,6 +232,16 @@ print_precision <- function(truth, prediction) {
 print_precision(series$is_anomaly, series_stat$is_anomaly)
 ```
 
+Calculate recall
+```{r}
+print_recall <- function(truth, prediction) {
+    labels = data.frame("truth" = as.factor(truth), 
+                      "prediction" = as.factor(prediction))
+    labels %>% recall(truth, prediction) %>% print()
+}
+
+print_recall(series$is_anomaly, anomalies_STAT(series))
+```
 
 ## One Class SVM
 
@@ -282,14 +278,14 @@ Confusion matrix
 plot_conf_mat(series$is_anomaly, series_ocsvm$is_anomaly)
 ```
 
-Recall
-```{r}
-print_recall(series$is_anomaly, series_ocsvm$is_anomaly)
-```
-
 Precisions
 ```{r}
 print_precision(series$is_anomaly, series_ocsvm$is_anomaly)
+```
+
+Recall
+```{r}
+print_recall(series$is_anomaly, series_ocsvm$is_anomaly)
 ```
 
 ## Seasonal Hybrid ESD model
@@ -413,6 +409,21 @@ plot_ts(series, "True anomalies")
 plot_ts(series_iso, paste("Isolation forest anomalies. Threashold:", threashold))
 
 # TODO: choose threashold by observing the anoamly scores quantiles
+```
+
+Confusion matrix
+```{r}
+plot_conf_mat(series$is_anomaly, series_iso$is_anomaly)
+```
+
+Precisions
+```{r}
+print_precision(series$is_anomaly, series_iso$is_anomaly)
+```
+
+Recall
+```{r}
+print_recall(series$is_anomaly, series_iso$is_anomaly)
 ```
 
 ### AutoML
