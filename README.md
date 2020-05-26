@@ -90,89 +90,6 @@ We can graph the autocorrelation function to dig further into the data.
 ![](https://imgur.com/kyFbXmR.png) -->
 
 
-## LSTM Neural Network Approach
-
-### Data Preprocessing
-Before feeding the network with data we should preprocess our data. The first thing which comes to the mind is to detect trends and seasonality and delete it from the signal. However, in this case, there was no seasonality nor trend. Then we checked if the data doesn't contain any null values and outliers, but fortunately, it didn't.
-
-Another thing which can be done is data normalization. In our purpose we decided to normalize our data due to this formule:
-```
-df = (df - df.mean()) / (df.max() - df.min())
-```
-
-As we can see, our signal is quite complex - it changes its values drastically, so we also have tried to smooth it a little bit using a rolling window technique trying different values of the window. The window size which gave us the best result was 5.
-
-The preprocessed signal can be seen in the picture below:
-
-![](https://imgur.com/oSG2zG7.png)
-
-So finally description of our data is:
-
-![](https://imgur.com/BMTJWsV.png)
-
-### Solution
-A powerful type of neural network designed to handle sequence dependence is called recurrent neural networks. The Long Short-Term Memory network or LSTM network is a type of recurrent neural network used in deep learning because very large architectures can be successfully trained.
-
-Before feeding the network with the data we needed to extend our dataset by assigning new attributes to each value. The new attributes are previous values of time series, so for value recorded at time t, we extended it of values from t-1, t-2 ... t-n. In this case, we got a data frame of size (initial length of data frame x n). We couldn't create all of the attributes for last n observations from each sub dataset so we decided to not include them in our training dataset. 
-
-Because of the LSTM neural network nature, we had to reshape our data one more time to get its final dimension equal to (initial length of data frame x n x 1). It had to be done because those types of networks operate only on 3D vectors. The fraction of the training dataset can be seen in the picture.
-
-![](https://imgur.com/kT1A5pH.png)
-
-The final architecture of the LSTM NN looks like:
-
-![](https://imgur.com/oK2PkrI.png")
-
-![](https://imgur.com/kT1A5pH.png)
-
-Its graphical ilustration can be seen below:
-
-![](https://imgur.com/339bam0.png")
-
-
-We repeated the learning process many times, trying different sizes of:
-* n - attributes which were value from the previous timestep
-* window size for smoothing the signal
-* epochs 
-
-The best-obtained result was for:
-* lookback n = 5
-* smoothing window size = 5
-* 20 epochs
-
-The learning process of network can be seen here:
-
-![](https://imgur.com/59ARm9m.png")
-
-
-Signal prediction on training dataset:
-
-![](https://imgur.com/WbhzOD0.png")
-
-
-
-Signal prediction on testing dataset:
-
-![](https://imgur.com/Dx0f3ja.png")
-
-
-The model isn't overtrained, as it can be seen at the pictures, signal predicted basing on the test dataset is as good as the one predicted on the training dataset.
-
-Then, to point the anomalies we tried to find the threshold which is the absolute value of the difference between real and predicted values. To do that we split our results into two groups - anomaly data and normal data. The summarize of absolute errors for each group can be seen at the picture:
-
-group without anomalies
-
-![](https://imgur.com/4HMz185.png")
-
-
-group with anomalies
-
-![](https://imgur.com/rwVLJJg.png")
-
-The max error for the group without anomalies equals to 0.151 when min error for a group with anomalies is 0.1639. It means, that we can easily split the difference between those two groups if we choose a tolerated error threshold sensibly.
-
-The threshold value set to differentiate groups correctly is *12 * (standard deviation of the whole dataset)* what equals to 1.559.
-
 ## Statistical approach
 
 We can find anomalies in time series simply by searching for extreme values or outliers. In `Dataset` chapter we build histograms of time series values. Most of the time series had distributions close to normal. This means that we can use interquartile distance to determine the outliers.
@@ -248,6 +165,88 @@ Confusion matrix:
 ![](https://imgur.com/VK5Ng3Y.png)
 
 Precision of the Isolation Forests approach is 100%, recall - 99.71%.
+
+## LSTM Neural Network Approach
+
+A powerful type of neural network designed to handle sequence dependence is called recurrent neural networks. The Long Short-Term Memory network or LSTM network is a type of recurrent neural network used in deep learning because very large architectures can be successfully trained.
+
+Before feeding the network with the data we needed to extend our dataset by assigning new attributes to each value. The new attributes are previous values of time series, so for value recorded at time t, we extended it of values from t-1, t-2 ... t-n. In this case, we got a data frame of size (initial length of data frame x n). We couldn't create all of the attributes for last n observations from each sub dataset so we decided to not include them in our training dataset. 
+
+#### Data Preprocessing
+Before feeding the network with data we should preprocess our data. The first thing which comes to the mind is to detect trends and seasonality and delete it from the signal. However, in this case, there was no seasonality nor trend. Then we checked if the data doesn't contain any null values and outliers, but fortunately, it didn't.
+
+Another thing which can be done is data normalization. In our purpose we decided to normalize our data due to this formule:
+```
+df = (df - df.mean()) / (df.max() - df.min())
+```
+
+As we can see, our signal is quite complex - it changes its values drastically, so we also have tried to smooth it a little bit using a rolling window technique trying different values of the window. The window size which gave us the best result was 5.
+
+The preprocessed signal can be seen in the picture below:
+
+![](https://imgur.com/oSG2zG7.png)
+
+So finally description of our data is:
+
+![](https://imgur.com/BMTJWsV.png)
+
+Because of the LSTM neural network nature, we had to reshape our data one more time to get its final dimension equal to (initial length of data frame x n x 1). It had to be done because those types of networks operate only on 3D vectors. The fraction of the training dataset can be seen in the picture.
+
+![](https://imgur.com/kT1A5pH.png)
+
+The final architecture of the LSTM NN looks like:
+
+![](https://imgur.com/oK2PkrI.png")
+
+![](https://imgur.com/kT1A5pH.png)
+
+Its graphical ilustration can be seen below:
+
+![](https://imgur.com/339bam0.png")
+
+#### Solution
+We repeated the learning process many times, trying different sizes of:
+* n - attributes which were value from the previous timestep
+* window size for smoothing the signal
+* epochs 
+
+The best-obtained result was for:
+* lookback n = 5
+* smoothing window size = 5
+* 20 epochs
+
+The learning process of network can be seen here:
+
+![](https://imgur.com/59ARm9m.png")
+
+
+Signal prediction on training dataset:
+
+![](https://imgur.com/WbhzOD0.png")
+
+
+
+Signal prediction on testing dataset:
+
+![](https://imgur.com/Dx0f3ja.png")
+
+
+The model isn't overtrained, as it can be seen at the pictures, signal predicted basing on the test dataset is as good as the one predicted on the training dataset.
+
+Then, to point the anomalies we tried to find the threshold which is the absolute value of the difference between real and predicted values. To do that we split our results into two groups - anomaly data and normal data. The summarize of absolute errors for each group can be seen at the picture:
+
+group without anomalies
+
+![](https://imgur.com/4HMz185.png")
+
+
+group with anomalies
+
+![](https://imgur.com/rwVLJJg.png")
+
+The max error for the group without anomalies equals to 0.151 when min error for a group with anomalies is 0.1639. It means, that we can easily split the difference between those two groups if we choose a tolerated error threshold sensibly.
+
+The threshold value set to differentiate groups correctly is *12 * (standard deviation of the whole dataset)* what equals to 1.559.
 
 ## Summary
 
