@@ -89,7 +89,10 @@ We can graph the autocorrelation function to dig further into the data.
 
 ![](https://imgur.com/kyFbXmR.png) -->
 
-## Data Preprocessing
+
+## LSTM Neural Network Approach
+
+### Data Preprocessing
 Before feeding the network with data we should preprocess our data. The first thing which comes to the mind is to detect trends and seasonality and delete it from the signal. However, in this case, there was no seasonality nor trend. Then we checked if the data doesn't contain any null values and outliers, but fortunately, it didn't.
 
 Another thing which can be done is data normalization. In our purpose we decided to normalize our data due to this formule:
@@ -107,7 +110,7 @@ So finally description of our data is:
 
 ![](https://imgur.com/BMTJWsV.png)
 
-## LSTM Neural Network Approach
+### Solution
 A powerful type of neural network designed to handle sequence dependence is called recurrent neural networks. The Long Short-Term Memory network or LSTM network is a type of recurrent neural network used in deep learning because very large architectures can be successfully trained.
 
 Before feeding the network with the data we needed to extend our dataset by assigning new attributes to each value. The new attributes are previous values of time series, so for value recorded at time t, we extended it of values from t-1, t-2 ... t-n. In this case, we got a data frame of size (initial length of data frame x n). We couldn't create all of the attributes for last n observations from each sub dataset so we decided to not include them in our training dataset. 
