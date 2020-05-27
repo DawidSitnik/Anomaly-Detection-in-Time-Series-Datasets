@@ -108,6 +108,7 @@ Plot time series with highlighted anomalies.
 
 plot_ts <- function(series, title="") {
   # Create a copy of timse series with normal values set to NA
+  series$timestamp <- as.numeric(series$timestamp)
   outliers_NA <- series
   outliers_NA$value[which(outliers_NA$is_anomaly == 0)] <- NA
   
@@ -119,9 +120,10 @@ plot_ts <- function(series, title="") {
     geom_line(size = 0.3) +
     geom_point(outliers_NA, mapping = aes(x = timestamp, y = value, color = "red"),
                size = 3, shape = 1) +
-    scale_x_datetime(expand = c(0.01, 0)) +
+    scale_x_continuous(expand = c(0.01, 0)) +
     scale_y_continuous(expand = c(0.05, 0)) +
     theme_bw() +
+    theme(axis.text.x = element_blank()) +
     theme(legend.position = "none") +
     labs(x = "Timestamp", y = "Value", color = "Anomaly")
 }
@@ -205,7 +207,7 @@ anomalies_STAT <- function(series) {
 series_stat <- series
 series_stat$is_anomaly <- 0
 series_stat["is_anomaly"] <- anomalies_STAT(series)
-plot_ts(series_stat)
+plot_ts(series_stat, "Statistical approach")
 
 ```
 
@@ -323,7 +325,8 @@ anomalies_ESD <- function(series) {
     geom_line(size = 0.3, color = "black") +
     scale_color_manual(values = c("black", "red")) +
     theme_bw() + 
-    theme(legend.position = "none") +
+    theme(legend.position = "none",
+          axis.text.x = element_blank()) +
     scale_x_datetime(expand = c(0.01, 0)) +
     scale_y_continuous(expand = c(0.05, 0)) +
     labs(x = "Timestamp", y = "Value", color = "Anomaly")
