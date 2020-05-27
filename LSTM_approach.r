@@ -1,4 +1,4 @@
-file_path = '/home/andy/Downloads/dataset/ydata-labeled-time-series-anomalies-v1_0/A1Benchmark/'
+file_path = './dataset/'
 df_full_with_anomalies <- data.frame()
 df_full <- data.frame()
 df_no_anomalies <- data.frame()
