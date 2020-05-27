@@ -4,7 +4,7 @@ df_full <- data.frame()
 df_no_anomalies <- data.frame()
 
 #reading csv files
-for(i in 1:12){
+for(i in 1:2){
   #reading csv
   name = paste(c(file_path, "real_", i, ".csv"), collapse = "")
   df = read.csv(name, encoding = "ISO-8859-1", header=TRUE)
@@ -42,11 +42,11 @@ temporalize <- function(X, lookback){
 X <- temporalize(df_full, timesteps)
 X <- data.frame(matrix(unlist(X), nrow=length(X), byrow=T))
 
-x_train <- X[0:10000, ]
+x_train <- X[0:1000, ]
 print(dim(x_train))
 x_train_3D <- array(x_train, c(dim(x_train)[1], timesteps, 1))
 
-y_train = df_full[10000:15000,]
+y_train = df_full[1000:1400,]
 
 #library(keras)
 
