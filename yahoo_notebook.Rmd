@@ -28,23 +28,9 @@ e1071 - Support Vector Machine implementation.
 Solitude - isolation forests implementation.
 
 ```{r, setup, include=FALSE, echo=FALSE, cache=FALSE}
-# # Rendering libraries
-# library(knitr)
-# # library(rmdformats)
-# 
-# ## Global options
-# options(max.print="75")
-# opts_chunk$set(cache=TRUE,
-#                prompt=FALSE,
-#                # tidy=TRUE,
-#                comment=NA,
-#                message=FALSE,
-#                warning=FALSE)
-# opts_knit$set(width=75)
-
 # Project libraries
 # Install, if some of them missing by running: 
-#   package.install('<name of the package>')
+#   install.packages('<name of the package>')
 library(tidyverse)
 library(AnomalyDetection)
 library(solitude)
@@ -98,7 +84,7 @@ paste("Yahoo time series dataset contains", length(dataset), "records")
 
 Dataset snippet
 ```{r}
-head(load_dataset()[[30]])
+head(load_dataset()[[1]])
 ```
 
 Plot time series with highlighted anomalies.
