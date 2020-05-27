@@ -117,10 +117,11 @@ plot_ts <- function(series, title="") {
   # - vermillion: #F8766D
   ggplot(series, aes(x = timestamp, y = value)) +
     ggtitle(title) +
-    geom_line(size = 0.3) +
+    geom_line(size = 0.3, color = "deepskyblue3") +
     geom_point(outliers_NA, mapping = aes(x = timestamp, y = value, color = "red"),
                size = 3, shape = 1) +
     scale_x_continuous(expand = c(0.01, 0)) +
+    scale_x_reverse() + 
     scale_y_continuous(expand = c(0.05, 0)) +
     theme_bw() +
     theme(axis.text.x = element_blank()) +
@@ -314,35 +315,35 @@ Find and plot anomalies using Hybrid ESD.
 anomalies_ESD <- function(series) {
   # Leave only timestamp and value columns
   data = data.frame(series$timestamp, series$value)
-  
+
   # Find and plot anomalies
   res = AnomalyDetectionTs(data,
                            max_anoms = 0.02,
                            direction = "both",
                            plot = TRUE)
-  res$plot <- 
-    res$plot + 
-    geom_line(size = 0.3, color = "black") +
-    scale_color_manual(values = c("black", "red")) +
-    theme_bw() + 
-    theme(legend.position = "none",
-          axis.text.x = element_blank()) +
-    scale_x_datetime(expand = c(0.01, 0)) +
-    scale_y_continuous(expand = c(0.05, 0)) +
-    labs(x = "Timestamp", y = "Value", color = "Anomaly")
-  res
+  series_esd <- series
+  series_esd$is_anomaly <- 0
+  series_esd$is_anomaly[as.numeric(series$timestamp) %in% as.numeric(res$anoms$timestamp)] <- 1
+  return(series_esd)
+  # res$plot <- 
+  #   res$plot + 
+  #   geom_line(size = 0.3, color = "black") +
+  #   scale_color_manual(values = c("black", "red")) +
+  #   theme_bw() + 
+  #   theme(legend.position = "none",
+  #         axis.text.x = element_blank()) +
+  #   scale_x_datetime(expand = c(0.01, 0)) +
+  #   scale_y_continuous(expand = c(0.05, 0)) +
+  #   labs(x = "Timestamp", y = "Value", color = "Anomaly")
+  # res
 }
 
 # Plot actual anomalies
 plot_ts(series) + ggtitle("Actual anomalies")
 
-series_esd <- series
-series_esd$is_anomaly <- 0
-
 # Plot Hybrid ESD anomalies
 anoms_esd = anomalies_ESD(series)
-series_esd$is_anomaly[as.numeric(series$timestamp) %in% as.numeric(anoms_esd$anoms$timestamp)] = 1
-anoms_esd$plot + ggtitle("Hybrid ESD anomalies")
+plot_ts(anoms_esd, "Seasonal Hybrid ESD anomalies")
 ```
 
 Confusion matrix

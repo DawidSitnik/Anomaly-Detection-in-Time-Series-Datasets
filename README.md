@@ -100,7 +100,7 @@ This approach has only one parameter which is IQR coefficient. IQR coefficient d
 
 Outliers found by the statistical approach:
 
-![](https://imgur.com/RvxYtu6.png)
+![](https://imgur.com/AfKf5Cd.png)
 
 Confusion matrix:
 
@@ -134,7 +134,7 @@ As a kernel to one-class SVM we set RBF function as it makes a good default kern
 
 Outliers detected by One-class SVM:
 
-![](https://imgur.com/7QxXIvK.png)
+![](https://imgur.com/UnzdTLZ.png)
 
 Confusion matrix:
 
@@ -148,7 +148,7 @@ Season Hybrid ESD (Extreme Studentized Deviant) is well known method for identif
 
 Visualization of anomalies found by ESD model:
 
-![](https://imgur.com/PgzJLX6.png)
+![](https://imgur.com/4tUPyof.png)
 
 Confusion matrix:
 
@@ -166,7 +166,7 @@ Visualization that demonstrates the idea that anomalies are separated in early s
 
 Outliers detected by the Isolation forest algorithm:
 
-![](https://imgur.com/tdhwMrV.png)
+![](https://imgur.com/7WEOLMw.png)
 
 Confusion matrix:
 
