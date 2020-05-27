@@ -1,10 +1,10 @@
-file_path = '/home/andy/Downloads/dataset/ydata-labeled-time-series-anomalies-v1_0/A1Benchmark/'
+file_path = './data/'
 df_full_with_anomalies <- data.frame()
 df_full <- data.frame()
 df_no_anomalies <- data.frame()
 
 #reading csv files
-for(i in 1:12){
+for(i in 1:1){
   #reading csv
   name = paste(c(file_path, "real_", i, ".csv"), collapse = "")
   df = read.csv(name, encoding = "ISO-8859-1", header=TRUE)
@@ -42,15 +42,16 @@ temporalize <- function(X, lookback){
 X <- temporalize(df_full, timesteps)
 X <- data.frame(matrix(unlist(X), nrow=length(X), byrow=T))
 
-x_train <- X[0:10000, ]
+x_train <- X[0:1000, ]
 print(dim(x_train))
 x_train_3D <- array(x_train, c(dim(x_train)[1], timesteps, 1))
 
-y_train = df_full[10000:15000,]
+y_train = df_full[1000:1400,]
 
 #library(keras)
 
-#Due to problems with inputting 3d matrix into LSTM as input,
+#after consultation with the Professor,
+#due to problems with inputting 3d matrix into LSTM as input,
 #part of the model responsible for teaching neural networs was executed in Python
 
 #model <- keras_model_sequential() %>% 
@@ -63,15 +64,15 @@ y_train = df_full[10000:15000,]
 #  fit(x_train_3D, x_train_3D , epochs=5, batch_size=5, verbose=0)
 
 #reading file with result created in python
-df_final = read.csv("/home/andy/Downloads/dataset/ydata-labeled-time-series-anomalies-v1_0/predicted_values_from_python.csv", encoding = "ISO-8859-1", header=TRUE)
+#df_final = read.csv("/home/andy/Downloads/dataset/ydata-labeled-time-series-anomalies-v1_0/predicted_values_from_python.csv", encoding = "ISO-8859-1", header=TRUE)
 
-df_anomalies <- df_final[(df_final$is_anomaly == 1),]
-df_no_anomalies <- df_final[(df_final$is_anomaly == 0),]
+#df_anomalies <- df_final[(df_final$is_anomaly == 1),]
+#df_no_anomalies <- df_final[(df_final$is_anomaly == 0),]
 
 
-library(dplyr)
-df_anomalies$r_quantile <- ntile(df_anomalies$abs_error, 100) 
-df_no_anomalies$r_quantile <- ntile(df_no_anomalies$abs_error, 100) 
+#library(dplyr)
+#df_anomalies$r_quantile <- ntile(df_anomalies$abs_error, 100) 
+#df_no_anomalies$r_quantile <- ntile(df_no_anomalies$abs_error, 100) 
 
-plot(aggregate(df_anomalies$abs_error, by=list(df_anomalies$r_quantile), FUN=mean), type='l', col='red', main='Quantiled Abs Error for Anomalies and No Anomalies', xlab = 'Quantile', ylab='Abs Error')
-lines(aggregate(df_no_anomalies$abs_error, by=list(df_no_anomalies$r_quantile), FUN=mean), col='green')
+#plot(aggregate(df_anomalies$abs_error, by=list(df_anomalies$r_quantile), FUN=mean), type='l', col='red', main='Quantiled Abs Error for Anomalies and No Anomalies', xlab = 'Quantile', ylab='Abs Error')
+#lines(aggregate(df_no_anomalies$abs_error, by=list(df_no_anomalies$r_quantile), FUN=mean), col='green')
