@@ -5,7 +5,7 @@
 
 * LSTM_approach.ipynb - Jupiter notebook in which LSTM solution is made
 * LSTM_approach.r - the same solution made in R with the extraction of the fragment responsible for learning LSTM network.
-* yahoo_notebook.Rmd - R notebook that contains statistical methods, One-class SVM, ESD, and Isolation Forest methods for time series anomaly detection.
+* yahoo_notebook.Rmd - R notebook that contains statistical, One-class SVM, ESD, and Isolation Forest methods for time series anomaly detection.
 * yahoo_notebook.html - knitted R notebook with evaluated results.
 
 ## The Aim of The Project
@@ -90,7 +90,7 @@ We can graph the autocorrelation function to dig further into the data.
 
 ## Statistical approach
 
-We can find anomalies in time series simply by searching for extreme values or outliers. In the `Dataset` chapter we build histograms of time series values. Most of the time series had distributions close to normal. This means that we can use interquartile distance to determine the outliers.
+We can find anomalies in time series simply by searching for extreme values or outliers. In the `Dataset` chapter we build histograms of time series values. Most of the time series had distributions close to normal. This means that we can use interquartile distance to determine the outliers. Primary reasons for this choice is were the simplicity of the method. This simplicity associated with IQR means that results can be interpreted easily which would make communication of results to non-technical audience less troublesome. 
 
 This approach has only one parameter which is the IQR coefficient. IQR coefficient determines how far away from the first and third quartile we consider time series value as an outlier. A commonly used rule is that a data point is an outlier if it is 1.5 * IQR above the third quartile or below the first quartile. Illustration of the described outliers detection method:
 
@@ -263,7 +263,7 @@ As a baseline, we used interquartile distance with a coefficient 1.5. This gives
 
 One-class Support Vector Machine improved recall of anomaly detection by 2%. This is a rather high improvement as our statistical approach was already acceptable. SVM is a more sophisticated algorithm and it is extensively used in classification and regression tasks because of its high accuracy and clear interpretation.
 
-Another machine learning algorithm that we used to identify time-series anomalies was Isolation Forest. It provides the best overall performance among methods that aren't based on deep learning giving 99.25% ofF1 score, 100% of precision, and 98.52% of recall. The algorithm is easily interpretable, doesn't require much of preprocessing steps, and is designed specifically for detecting anomalies. Isolation Forest doesn't have major drawbacks which makes it one of the most preferable choices in our task.
+Another machine learning algorithm that we used to identify time-series anomalies was Isolation Forest. It provides the best overall performance among methods that aren't based on deep learning giving 99.25% of F1 score, 100% of precision, and 98.52% of recall. The algorithm is easily interpretable, doesn't require much of preprocessing steps, and is designed specifically for detecting anomalies. Isolation Forest doesn't have major drawbacks which makes it one of the most preferable choices in our task.
 
 In the end, we tried a more complex solution which was deep learning. This process required the biggest amount of data preprocessing and took a lot of time because training bidirectional networks is a challenging task for the machine. 
 In this example, the data was transformed in a way that didn't need the rows to be labeled, so it was also an unsupervised method. Our network was able to mimic the behavior of the data in a very accurate way which allowed us to find all anomalies correctly without getting any false positives. We proved that those types of approaches to the problem can also result in success, getting the best possible score for this model.
