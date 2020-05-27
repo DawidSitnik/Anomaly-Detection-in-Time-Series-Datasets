@@ -94,7 +94,7 @@ We can graph the autocorrelation function to dig further into the data.
 
 We can find anomalies in time series simply by searching for extreme values or outliers. In `Dataset` chapter we build histograms of time series values. Most of the time series had distributions close to normal. This means that we can use interquartile distance to determine the outliers.
 
-This approach has only one parameter which is IQR coefficient. IQR coefficient determines how far away from the first and third quartile we consider time series value as an outlier. A commonly used rule is that a data point is an outlier if it is $1.5 \cdot IQR$ above the third quartile or below the first quartile. Illustration of the described outliers detection method:
+This approach has only one parameter which is IQR coefficient. IQR coefficient determines how far away from the first and third quartile we consider time series value as an outlier. A commonly used rule is that a data point is an outlier if it is 1.5 * IQR above the third quartile or below the first quartile. Illustration of the described outliers detection method:
 
 ![](https://imgur.com/pWiSM7N.png)
 
@@ -116,15 +116,15 @@ Kernelized SVM algorithm tries to separate two-class by first mapping instances 
 
 One-class SVM can only be applied to a set of vectors which means that we need to figure out how to convert time series so that it can be fed to OCSVM. We do this by unfolding the time series into a phase space using time-delay embeddings. Time series embedding vector process:
 
-$$x_E(t) = [x(t-E+1) x(x-E+2) \dotsb x(t)]$$, where $x_E(t)$ is an embedding vector at time $t$ and $E$ is *embedding dimension*.
+/x_E(t) = [x(t-E+1) x(x-E+2) ... x(t)]/, where /x_E(t)/ is an embedding vector at time /t/ and /E/ is *embedding dimension*.
 
-Therefore, a time series can be converted to a set of vectors $T_E(N)=\{x_E(t), t=E \dotsb N\}$.
+Therefore, a time series can be converted to a set of vectors /T_E(N)=\x_E(t), t=E ... N}/.
 
-After converting a time-series into a set of vectors we run OCSVM algorithm on them. If algorithm suggests that embedding vector $x_E(t)$ is an outlier all points from this embedding at set 1(this marks time-series values as an outlier in times series data frame).
+After converting a time-series into a set of vectors we run OCSVM algorithm on them. If algorithm suggests that embedding vector /x_E(t)/ is an outlier all points from this embedding at set 1(this marks time-series values as an outlier in times series data frame).
 
 We set *embeding dimesions* to 5 as it gives an optimistic trade-off between detection rate and false alarm.
 
-Last hyperparameter that we consider is $\nu$. It is a regularization parameter of SVM algorithm and it can be interpreted as an upper bound on the fraction of margin errors and a lower bound of the fraction of support vectors relative to the number of training examples. We set this parameter to 1% as we expect a fairly small number of outliers in the time-series.
+Last hyperparameter that we consider is /nu/. It is a regularization parameter of SVM algorithm and it can be interpreted as an upper bound on the fraction of margin errors and a lower bound of the fraction of support vectors relative to the number of training examples. We set this parameter to 1% as we expect a fairly small number of outliers in the time-series.
 
 As a kernel to one-class SVM we set RBF function as it makes a good default kernel to non-linear problems. Some papers suggest that RBF kernel performs very well on different types of times series and learning tasks, it still a good practice to practice to pay a closer look at the times series with specialized applications as other kernel functions could have a better performance.
 
