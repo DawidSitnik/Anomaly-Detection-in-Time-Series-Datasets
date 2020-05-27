@@ -42,7 +42,7 @@ library(e1071)
 
 # Loading dataset
 
-Default path is set to `dataset/A1Bechmark`. You can specify whether to convert timestapms to `Date` type.
+Default path is set to `dataset/`.
 
 ```{r, cache=TRUE}
 load_dataset <- function(convert_timestamp = FALSE,
@@ -247,7 +247,7 @@ print_f_score(series$is_anomaly, anomalies_STAT(series))
 Embeding time series values
 ```{r}
 series_embeddings <- embed(series$value, 5)
-data.frame(series_embeddings)
+data.frame(t(series_embeddings[1, ]))
 ```
 
 ```{r}
@@ -268,7 +268,6 @@ series_ocsvm$is_anomaly <- 0
 for (idx in which(pred_ocsvm == FALSE)){
   series_ocsvm$is_anomaly[idx:idx+4] = 1
 }
-plot_ts(series, "True anomalies")
 plot_ts(series_ocsvm, "One-class SVM anomalies")
 ```
 
@@ -310,21 +309,7 @@ anomalies_ESD <- function(series) {
   series_esd$is_anomaly <- 0
   series_esd$is_anomaly[as.numeric(series$timestamp) %in% as.numeric(res$anoms$timestamp)] <- 1
   return(series_esd)
-  # res$plot <- 
-  #   res$plot + 
-  #   geom_line(size = 0.3, color = "black") +
-  #   scale_color_manual(values = c("black", "red")) +
-  #   theme_bw() + 
-  #   theme(legend.position = "none",
-  #         axis.text.x = element_blank()) +
-  #   scale_x_datetime(expand = c(0.01, 0)) +
-  #   scale_y_continuous(expand = c(0.05, 0)) +
-  #   labs(x = "Timestamp", y = "Value", color = "Anomaly")
-  # res
 }
-
-# Plot actual anomalies
-plot_ts(series) + ggtitle("Actual anomalies")
 
 # Plot Hybrid ESD anomalies
 anoms_esd = anomalies_ESD(series)
@@ -372,7 +357,7 @@ checkresiduals(yahoo_m)
 Make forecast with ARIMA model.
 
 ```{r}
-fc_yahoo_m <- forecast(yahoo_m, 100)
+fc_yahoo_m <- forecast(yahoo_m, 20)
 fc_yahoo_m
 ```
 
@@ -384,16 +369,11 @@ ts_length = length(fc_yahoo_m$x)
 # Plot ARIMA forecast
 autoplot(fc_yahoo_m) +
   theme_bw()
-
-# # Zoomed-in version
-# autoplot(fc_yahoo_m) +
-#   theme_bw() +
-#   coord_cartesian(xlim = c(max(ts_length - 100, 0), ts_length))
 ```
 
 ### Identifying anomalies
 
-For some reason ARIMA model can't forecast time series value beyound 100 steps. As seen on forecasting plot the forecast in smoothed out.
+For some reason ARIMA model can't forecast time series value beyound 10 steps. As seen on forecasting plot the forecast in smoothed out.
 
 ## Machine learning models
 
@@ -416,7 +396,6 @@ anomalies_ISO <- function(series, threashold=0.5) {
 threashold = 0.6
 series_iso <- series
 series_iso["is_anomaly"] <- anomalies_ISO(series, threashold)
-plot_ts(series, "True anomalies")
 plot_ts(series_iso, paste("Isolation forest anomalies. Threashold:", threashold))
 
 # TODO: choose threashold by observing the anoamly scores quantiles
@@ -442,20 +421,3 @@ F1 score
 print_f_score(series$is_anomaly, series_iso$is_anomaly)
 ```
 
-### AutoML
-
-```{r}
-# h2o.init()
-```
-
-```{r}
-# h2o_series <- as.h2o(data.frame(series$value, series$is_anomaly))
-# x = c("series.value")
-# y = c("series.is_anomaly")
-# autoML <- h2o.automl(training_frame = h2o_series, 
-#                      x, 
-#                      y, 
-#                      nfolds = 5, 
-#                      max_runtime_secs = 60*20, 
-#                      seed = 1234)
-```
