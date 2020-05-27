@@ -112,6 +112,8 @@ Precision and recall metrics are 96.69% and 100% respectively. This means that o
 
 One-class SVM is an extension of the original SVM algorithms that learns a decision boundary that tries to achieve the maximum separation between the sample of the known class and the origin. Algorithm allows only a small part of the dataset to lie on the other side of the decision boundary. These points are considered as outliers.
 
+Kernelized SVM algorithm tries to separate two-class by first mapping instances to a high dimensional space, then it separates those instances using linear SVM within this high-dimension space. In the case of one-class SVM we have only one class of instances, this means that we try to separate instances in high-dimensional space from the origin. Looking at this from the original space perspective this will correspond to finding the smallest region that encompasses all of the instances. Instances that don't fall within this region are considered as an anomaly.
+
 One-class SVM can only be applied to a set of vectors which means that we need to figure out how to convert time series so that it can be fed to OCSVM. We do this by unfolding the time series into a phase space using time-delay embeddings. Time series embedding vector process:
 
 $$x_E(t) = [x(t-E+1) x(x-E+2) \dotsb x(t)]$$, where $x_E(t)$ is an embedding vector at time $t$ and $E$ is *embedding dimension*.
@@ -123,6 +125,8 @@ After converting a time-series into a set of vectors we run OCSVM algorithm on t
 We set *embeding dimesions* to 5 as it gives an optimistic trade-off between detection rate and false alarm.
 
 Last hyperparameter that we consider is $\nu$. It is a regularization parameter of SVM algorithm and it can be interpreted as an upper bound on the fraction of margin errors and a lower bound of the fraction of support vectors relative to the number of training examples. We set this parameter to 1% as we expect a fairly small number of outliers in the time-series.
+
+As a kernel to one-class SVM we set RBF function as it makes a good default kernel to non-linear problems. Some papers suggest that RBF kernel performs very well on different types of times series and learning tasks, it still a good practice to practice to pay a closer look at the times series with specialized applications as other kernel functions could have a better performance.
 
 Outliers detected by One-class SVM:
 
