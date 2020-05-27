@@ -138,7 +138,6 @@ plot_ts(series)
 
 
 Let's add some histograms
-
 ```{r}
 plot_hist <- function(series, binsize = 1) {
   ggplot(series, aes(x = value)) +
@@ -243,6 +242,18 @@ print_recall <- function(truth, prediction) {
 print_recall(series$is_anomaly, anomalies_STAT(series))
 ```
 
+Calculate F1 score
+```{r}
+print_f_score <- function(truth, prediction) {
+    labels = data.frame("truth" = as.factor(truth), 
+                      "prediction" = as.factor(prediction))
+    labels %>% f_meas(truth, prediction) %>% print()
+}
+
+print_f_score(series$is_anomaly, anomalies_STAT(series))
+```
+
+
 ## One Class SVM
 
 Embeding time series values
@@ -288,6 +299,11 @@ Recall
 print_recall(series$is_anomaly, series_ocsvm$is_anomaly)
 ```
 
+F1 score
+```{r}
+print_f_score(series$is_anomaly, series_ocsvm$is_anomaly)
+```
+
 ## Seasonal Hybrid ESD model
 
 Find and plot anomalies using Hybrid ESD.
@@ -331,15 +347,21 @@ Confusion matrix
 plot_conf_mat(series$is_anomaly, series_esd$is_anomaly)
 ```
 
+Precisions
+```{r}
+print_precision(series$is_anomaly, series_esd$is_anomaly)
+```
+
 Recall
 ```{r}
 print_recall(series$is_anomaly, series_esd$is_anomaly)
 ```
 
-Precisions
+F1 score
 ```{r}
-print_precision(series$is_anomaly, series_esd$is_anomaly)
+print_f_score(series$is_anomaly, series_esd$is_anomaly)
 ```
+
 
 ## ARIMA model
 
@@ -424,6 +446,11 @@ print_precision(series$is_anomaly, series_iso$is_anomaly)
 Recall
 ```{r}
 print_recall(series$is_anomaly, series_iso$is_anomaly)
+```
+
+F1 score
+```{r}
+print_f_score(series$is_anomaly, series_iso$is_anomaly)
 ```
 
 ### AutoML

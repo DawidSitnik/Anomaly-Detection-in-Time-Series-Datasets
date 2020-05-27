@@ -106,7 +106,11 @@ Confusion matrix:
 
 ![](https://imgur.com/pdcjbko.png)
 
-Precision and recall metrics are 96.69% and 100% respectively. This means that our model is able to identify all the outliers present in the dataset, but it is correct in 96.69% of the time.
+F1 score of the model - 98.31%. Precision and recall metrics are 96.69% and 100% respectively. This means that our model is able to identify all the outliers present in the dataset, but it is correct in 96.69% of the time.
+
+We also compute the F1 score to evalue model performance. This score is often more convenient as it combines precision and recall into single metric, thus it is a simpler way to compare models. F1 score is a harmonic mean of the precisiona and recall, harmonic mean gives much more weight to to low values, therefore we will get high F1 score only if precision and recall are high.
+
+It is a topic of discussion whether this metric will be useful in production in our case as it favors classifiers with similar precision and recall. In our task we work with anomaly detection on an anonymized dataset and we don't know what kind of anomalies we look at. There could be cases that we want to identify all anomalies(high precisions) sacrificing recall. For example anomalies could mean vital health parameter anomalies of which will result in the certain death of the person.
 
 ## One-class Support Vector Machine
 
@@ -136,7 +140,7 @@ Confusion matrix:
 
 ![](https://imgur.com/JdzheZZ.png)
 
-Precision of the OCSVM is 100%, recall - 98.66%. Compared to shallow statistical approach OCSVM algorithm is correct in more cases. These results are easy to explain as OCSVM is much more complex and robust algorithm which combined with embedding space can be applied to time-series.
+F1 score of the model - 98.66%. Precision of the OCSVM is 100%, recall - 98.66%. Compared to shallow statistical approach OCSVM algorithm is correct in more cases. These results are easy to explain as OCSVM is much more complex and robust algorithm which combined with embedding space can be applied to time-series.
 
 ## Seasonal Hybrid ESD Model
 
@@ -150,7 +154,7 @@ Confusion matrix:
 
 ![](https://imgur.com/qvQHxzB.png)
 
-Precision of the ESD model - 100%, recall - 98.52%.
+F1 score - 99.25%. Precision of the ESD model - 100%, recall - 98.52%.
 
 ## Isolation forests
 
@@ -168,7 +172,7 @@ Confusion matrix:
 
 ![](https://imgur.com/VK5Ng3Y.png)
 
-Precision of the Isolation Forests approach is 100%, recall - 99.71%.
+F1 score of EDS approach - 99.85%. Precision of the Isolation Forests approach is 100%, recall - 99.71%.
 
 ## LSTM Neural Network Approach
 
