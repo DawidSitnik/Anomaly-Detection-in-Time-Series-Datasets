@@ -1,0 +1,423 @@
+---
+title: "Anomaly detection in Yahoo time series"
+output: 
+  # html_document
+  rmdformats::readthedown:
+    highlight: kate
+---
+
+# Required libraries
+
+Tidyverse - core tidy verse packges used in this project are:  
+
+* ggplo2 - plotting library, duh
+* purr - functional programming toolkit, helps you forget what loops are
+* readr - reading rectangular data, .csv in our case
+* dplyr - it's like sql, but in r
+
+AnomalyDetection - Twitter's outlier detection package that implements Seasonal Hybrid ESD (Extreme Studentized Deviant).
+
+Forecast - methods and tools for analysing univariate time series.
+
+Tseries - time series analysis
+
+Yardstick - tools for quntifying model performance.
+
+e1071 - Support Vector Machine implementation.
+
+Solitude - isolation forests implementation.
+
+```{r, setup, include=FALSE, echo=FALSE, cache=FALSE}
+# Project libraries
+# Install, if some of them missing by running: 
+#   install.packages('<name of the package>')
+library(tidyverse)
+library(AnomalyDetection)
+library(solitude)
+library(forecast)
+library(yardstick)
+library(tseries)
+library(e1071)
+```
+
+# Loading dataset
+
+Default path is set to `dataset/`.
+
+```{r, cache=TRUE}
+load_dataset <- function(convert_timestamp = FALSE,
+                         path = "data") {
+  dataset_files <- list.files(path, full.names = TRUE)
+  
+  # We throw warning if dataset is empty
+  if (length(dataset_files) == 0){
+    warning(paste("Warning: loaded dataset has 0 records.\n"))
+  }
+  
+  # Parse files
+  dataset <- dataset_files %>% 
+    map(function(x) {
+        read_csv(x, col_type = cols(
+          col_double(),
+          col_double(),
+          col_double()
+        ))
+      })
+  if (convert_timestamp) {
+    dataset <- dataset %>%
+      map(function(x) {
+        time <- as.POSIXlt.Date(x$timestamp)
+        df <- data.frame(time, x$value, x$is_anomaly)
+        colnames(df) <- c("timestamp", "value", "is_anomaly")
+        df
+      })
+  }
+  dataset
+}
+
+# Load dataset
+dataset <- load_dataset(TRUE)
+paste("Yahoo time series dataset contains", length(dataset), "records")
+```
+
+# Exploring yahoo dataset
+
+Dataset snippet
+```{r}
+head(load_dataset()[[1]])
+```
+
+Plot time series with highlighted anomalies.
+
+```{r, warning=FALSE}
+
+plot_ts <- function(series, title="") {
+  # Create a copy of timse series with normal values set to NA
+  series$timestamp <- as.numeric(series$timestamp)
+  outliers_NA <- series
+  outliers_NA$value[which(outliers_NA$is_anomaly == 0)] <- NA
+  
+  # ggplot default color:
+  # - bluish green: #00BFC4
+  # - vermillion: #F8766D
+  ggplot(series, aes(x = timestamp, y = value)) +
+    ggtitle(title) +
+    geom_line(size = 0.3, color = "deepskyblue3") +
+    geom_point(outliers_NA, mapping = aes(x = timestamp, y = value, color = "red"),
+               size = 3, shape = 1) +
+    scale_x_continuous(expand = c(0.01, 0)) +
+    scale_x_reverse() + 
+    scale_y_continuous(expand = c(0.05, 0)) +
+    theme_bw() +
+    theme(axis.text.x = element_blank()) +
+    theme(legend.position = "none") +
+    labs(x = "Timestamp", y = "Value", color = "Anomaly")
+}
+
+normalize <- function(x) {
+  x_std <- (x - min(x)) / max(x) - min(x)
+}
+
+# Set working time series
+series <- dataset[[1]]
+series$value <- normalize(series$value)
+plot_ts(series)
+```
+
+
+Let's add some histograms
+```{r}
+plot_hist <- function(series, binsize = 1) {
+  ggplot(series, aes(x = value)) +
+    geom_histogram(binwidth = binsize, fill = "white", color = "black") +
+    theme_bw() +
+    labs(x = "Value", y = "Frequency", color = "Anomaly")
+}
+
+# Histogram of untrasformed data
+plot_hist(series, 0.02)
+
+# Difference the data
+diffs <- data.frame(series %>% map(diff))
+plot_hist(diffs, 0.02)
+```
+
+<!-- Decomposition of the time series. -->
+
+<!-- ```{r} -->
+<!-- stl(series$value) -->
+<!-- ``` -->
+
+Test if time series is stationary.
+
+```{r, warning=FALSE}
+adf.test(series$value)
+```
+
+Test presence of autocorrelation.
+
+```{r}
+Box.test(series$value)
+```
+
+Plotting the autocorrelation function.
+
+```{r}
+acf(series$value)
+```
+
+Plotting the partial autocorrelation function.
+
+```{r}
+pacf(series$value)
+```
+
+# Anomaly detection
+
+## Statistical approach
+
+We can identify anomalies using interquartile distance
+```{r, warning=FALSE}
+anomalies_STAT <- function(series) {
+  df_stat_anom <- series %>%
+  select(value) %>%
+  mutate(is_low_percentile = case_when(
+    value < quantile(value, probs = 0.25) - 1.5 * IQR(value) |
+      value > quantile(value, probs = 0.75) + 1.5 * IQR(value)
+    ~ 1,
+    TRUE ~ 0
+  ))
+  df_stat_anom$is_low_percentile
+}
+
+series_stat <- series
+series_stat$is_anomaly <- 0
+series_stat["is_anomaly"] <- anomalies_STAT(series)
+plot_ts(series_stat, "Statistical approach")
+
+```
+
+Plot confusion matrix
+```{r}
+plot_conf_mat <- function(truth, prediction) {
+  labels = data.frame("truth" = as.factor(truth), 
+                      "prediction" = as.factor(prediction))
+  labels %>% conf_mat(truth, prediction) %>% autoplot(type = "heatmap")
+}
+
+plot_conf_mat(series$is_anomaly, anomalies_STAT(series))
+```
+
+Calculate precision
+```{r}
+print_precision <- function(truth, prediction) {
+      labels = data.frame("truth" = as.factor(truth), 
+                      "prediction" = as.factor(prediction))
+    labels %>% precision(truth, prediction) %>% print()
+}
+
+print_precision(series$is_anomaly, series_stat$is_anomaly)
+```
+
+Calculate recall
+```{r}
+print_recall <- function(truth, prediction) {
+    labels = data.frame("truth" = as.factor(truth), 
+                      "prediction" = as.factor(prediction))
+    labels %>% recall(truth, prediction) %>% print()
+}
+
+print_recall(series$is_anomaly, anomalies_STAT(series))
+```
+
+Calculate F1 score
+```{r}
+print_f_score <- function(truth, prediction) {
+    labels = data.frame("truth" = as.factor(truth), 
+                      "prediction" = as.factor(prediction))
+    labels %>% f_meas(truth, prediction) %>% print()
+}
+
+print_f_score(series$is_anomaly, anomalies_STAT(series))
+```
+
+
+## One Class SVM
+
+Embeding time series values
+```{r}
+series_embeddings <- embed(series$value, 5)
+data.frame(t(series_embeddings[1, ]))
+```
+
+```{r}
+model_ocsmv <- svm(series_embeddings, 
+                   type = 'one-classification', 
+                   kernel = 'radial',
+                   gamma = 0.05,
+                   nu = 0.01)
+model_ocsmv
+```
+
+Identifying outliers using above model
+```{r}
+pred_ocsvm <- predict(model_ocsmv, series_embeddings)
+
+series_ocsvm <- series
+series_ocsvm$is_anomaly <- 0
+for (idx in which(pred_ocsvm == FALSE)){
+  series_ocsvm$is_anomaly[idx:idx+4] = 1
+}
+plot_ts(series_ocsvm, "One-class SVM anomalies")
+```
+
+Confusion matrix
+```{r}
+plot_conf_mat(series$is_anomaly, series_ocsvm$is_anomaly)
+```
+
+Precisions
+```{r}
+print_precision(series$is_anomaly, series_ocsvm$is_anomaly)
+```
+
+Recall
+```{r}
+print_recall(series$is_anomaly, series_ocsvm$is_anomaly)
+```
+
+F1 score
+```{r}
+print_f_score(series$is_anomaly, series_ocsvm$is_anomaly)
+```
+
+## Seasonal Hybrid ESD model
+
+Find and plot anomalies using Hybrid ESD.
+
+```{r, cache=TRUE, warning=FALSE, message=FALSE}
+anomalies_ESD <- function(series) {
+  # Leave only timestamp and value columns
+  data = data.frame(series$timestamp, series$value)
+
+  # Find and plot anomalies
+  res = AnomalyDetectionTs(data,
+                           max_anoms = 0.02,
+                           direction = "both",
+                           plot = TRUE)
+  series_esd <- series
+  series_esd$is_anomaly <- 0
+  series_esd$is_anomaly[as.numeric(series$timestamp) %in% as.numeric(res$anoms$timestamp)] <- 1
+  return(series_esd)
+}
+
+# Plot Hybrid ESD anomalies
+anoms_esd = anomalies_ESD(series)
+plot_ts(anoms_esd, "Seasonal Hybrid ESD anomalies")
+```
+
+Confusion matrix
+```{r}
+plot_conf_mat(series$is_anomaly, anoms_esd$is_anomaly)
+```
+
+Precisions
+```{r}
+print_precision(series$is_anomaly, anoms_esd$is_anomaly)
+```
+
+Recall
+```{r}
+print_recall(series$is_anomaly, anoms_esd$is_anomaly)
+```
+
+F1 score
+```{r}
+print_f_score(series$is_anomaly, anoms_esd$is_anomaly)
+```
+
+
+## ARIMA model
+
+### Predicting anomalies
+
+Fitting an ARIMA Model.
+
+```{r}
+yahoo_m <- auto.arima(series$value, seasonal = FALSE)
+yahoo_m
+```
+
+Running diagnosis on an ARIMA model.
+
+```{r}
+checkresiduals(yahoo_m)
+```
+
+Make forecast with ARIMA model.
+
+```{r}
+fc_yahoo_m <- forecast(yahoo_m, 20)
+fc_yahoo_m
+```
+
+Plotting the forecast.
+
+```{r}
+ts_length = length(fc_yahoo_m$x)
+
+# Plot ARIMA forecast
+autoplot(fc_yahoo_m) +
+  theme_bw()
+```
+
+### Identifying anomalies
+
+For some reason ARIMA model can't forecast time series value beyound 10 steps. As seen on forecasting plot the forecast in smoothed out.
+
+## Machine learning models
+
+### Isolation forests
+
+Detecting anomalies with isoaltion forests using `solitude` library
+```{r, warning=FALSE, message=FALSE}
+
+anomalies_ISO <- function(series, threashold=0.5) {
+  # Isolation forests model instance
+  iso <- isolationForest$new()
+  
+  # Fit for time series values data
+  iso$fit(data.frame(series$value))
+  
+  # Identify anomalies score above the threashold
+  iso_anomalies <- if_else(iso$scores$anomaly_score > threashold, 1, 0)
+}
+
+threashold = 0.6
+series_iso <- series
+series_iso["is_anomaly"] <- anomalies_ISO(series, threashold)
+plot_ts(series_iso, paste("Isolation forest anomalies. Threashold:", threashold))
+
+# TODO: choose threashold by observing the anoamly scores quantiles
+```
+
+Confusion matrix
+```{r}
+plot_conf_mat(series$is_anomaly, series_iso$is_anomaly)
+```
+
+Precisions
+```{r}
+print_precision(series$is_anomaly, series_iso$is_anomaly)
+```
+
+Recall
+```{r}
+print_recall(series$is_anomaly, series_iso$is_anomaly)
+```
+
+F1 score
+```{r}
+print_f_score(series$is_anomaly, series_iso$is_anomaly)
+```
+

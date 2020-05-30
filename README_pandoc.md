@@ -43,15 +43,15 @@ The is_anomaly field is a boolean indicating if the current value at a given tim
 
 The dataset before preprocessing:
 
-![](https://imgur.com/qkjA3oo.png)
+![](https://imgur.com/qkjA3oo.png){width=80%}
 
 Common exploratory data analysis tools in time-series and non-time series data are histograms. We will also look at the differenced data because we want to use our timestamp (time) axis.
 
 The histogram of untransformed data
 
-![](https://imgur.com/M2phBfi.png)
+![](https://imgur.com/M2phBfi.png){width=80%}
 
-![](https://imgur.com/ovzO405.png)
+![](https://imgur.com/ovzO405.png){width=80%}
 
 
 The histogram of untransformed data (top) shows normal distributions. This is to be expected given that the underlying sample (1st in our case) has no trend. If the series had a trend, we would difference the data to remove it, and this would transform the data into a more normal shaped distribution (bottom).
@@ -94,15 +94,15 @@ We can find anomalies in time series simply by searching for extreme values or o
 
 This approach has only one parameter which is the IQR coefficient. IQR coefficient determines how far away from the first and third quartile we consider time series value as an outlier. A commonly used rule is that a data point is an outlier if it is 1.5 * IQR above the third quartile or below the first quartile. Illustration of the described outliers detection method:
 
-![](https://imgur.com/pWiSM7N.png)
+![](https://imgur.com/pWiSM7N.png){width=80%}
 
 Outliers found by the statistical approach:
 
-![](https://imgur.com/AfKf5Cd.png)
+![](https://imgur.com/AfKf5Cd.png){width=80%}
 
 Confusion matrix:
 
-![](https://imgur.com/pdcjbko.png)
+![](https://imgur.com/pdcjbko.png){width=80%}
 
 F1 score of the model - 98.31%. Precision and recall metrics are 96.69% and 100% respectively. This means that our model can identify all the outliers present in the dataset, but it is correct in 96.69% of the time.
 
@@ -118,25 +118,25 @@ Kernelized SVM algorithm tries to separate two-class by first mapping instances 
 
 One-class SVM can only be applied to a set of vectors which means that we need to figure out how to convert time series so that it can be fed to OCSVM. We do this by unfolding the time series into a phase space using time-delay embeddings. Time series embedding vector process:
 
-*x_E(t) = [x(t-E+1) x(x-E+2) ... x(t)]*, where *x_E(t)* is an embedding vector at time *t* and *E* is *embedding dimension*.
+$$x_E(t) = [x(t-E+1) x(x-E+2) ... x(t)]$$, where $x_E(t)$ is an embedding vector at time $t$ and $E$ is *embedding dimension*.
 
-Therefore, a time series can be converted to a set of vectors *T_E(N)={x_E(t), t = E ... N}*.
+Therefore, a time series can be converted to a set of vectors $T_E(N)=\{x_E(t), t = E ... N\}$.
 
-After converting a time-series into a set of vectors we run the OCSVM algorithm on them. If the algorithm suggests that embedding vector *x_E(t)* is an outlier all points from this embedding at set 1(this marks time-series values as an outlier in times series data frame).
+After converting a time-series into a set of vectors we run the OCSVM algorithm on them. If the algorithm suggests that embedding vector $x_E(t)$ is an outlier all points from this embedding at set 1(this marks time-series values as an outlier in times series data frame).
 
 We set *embedding dimensions* to 5 as it gives an optimistic trade-off between detection rate and false alarm.
 
-The last hyperparameter that we consider is *nu*. It is a regularization parameter of the SVM algorithm and it can be interpreted as an upper bound on the fraction of margin errors and a lower bound of the fraction of support vectors relative to the number of training examples. We set this parameter to 1% as we expect a fairly small number of outliers in the time-series.
+The last hyperparameter that we consider is $\nu$. It is a regularization parameter of the SVM algorithm and it can be interpreted as an upper bound on the fraction of margin errors and a lower bound of the fraction of support vectors relative to the number of training examples. We set this parameter to 1% as we expect a fairly small number of outliers in the time-series.
 
 As a kernel to one-class SVM, we set RBF function as it makes a good default kernel to non-linear problems. Some papers suggest that RBF kernel performs very well on different types of times series and learning tasks, it still a good practice to pay a closer look at the times series with specialized applications as other kernel functions could have a better performance.
 
 Outliers detected by One-class SVM:
 
-![](https://imgur.com/UnzdTLZ.png)
+![](https://imgur.com/UnzdTLZ.png){width=80%}
 
 Confusion matrix:
 
-![](https://imgur.com/JdzheZZ.png)
+![](https://imgur.com/JdzheZZ.png){width=80%}
 
 F1 score of the model - 98.66%. Precision of the OCSVM is 100%, recall - 98.66%. Compared to the shallow statistical approach OCSVM algorithm is correct in more cases. These results are easy to explain as OCSVM is a much more complex and robust algorithm which combined with embedding space can be applied to time-series.
 
@@ -146,11 +146,11 @@ Season Hybrid ESD (Extreme Studentized Deviant) is a well-known method for ident
 
 Visualization of anomalies found by the ESD model:
 
-![](https://imgur.com/4tUPyof.png)
+![](https://imgur.com/4tUPyof.png){width=80%}
 
 Confusion matrix:
 
-![](https://imgur.com/qvQHxzB.png)
+![](https://imgur.com/qvQHxzB.png){width=80%}
 
 F1 score - 99.25%. Precision of the ESD model - 100%, recall - 98.52%.
 
@@ -160,15 +160,15 @@ Isolation Forest is a variation of the Random Forest algorithm which creates ran
 
 A visualization that demonstrates the idea that anomalies are separated in the early stages of the Isolation Forest under random partitioning:
 
-![](https://imgur.com/k5O3yZj.png)
+![](https://imgur.com/k5O3yZj.png){width=80%}
 
 Outliers detected by the Isolation forest algorithm:
 
-![](https://imgur.com/7WEOLMw.png)
+![](https://imgur.com/7WEOLMw.png){width=80%}
 
 Confusion matrix:
 
-![](https://imgur.com/VK5Ng3Y.png)
+![](https://imgur.com/VK5Ng3Y.png){width=80%}
 
 F1 score of EDS approach - 99.85%. The precision of the Isolation Forests approach is 100%, recall - 99.71%.
 
@@ -190,25 +190,25 @@ As we can see, our signal is quite complex - it changes its values drastically, 
 
 The preprocessed signal can be seen in the picture below:
 
-![](https://imgur.com/oSG2zG7.png)
+![](https://imgur.com/oSG2zG7.png){width=80%}
 
 So finally a description of our data is:
 
-![](https://imgur.com/BMTJWsV.png)
+![](https://imgur.com/BMTJWsV.png){width=30%}
 
 Because of the LSTM neural network nature, we had to reshape our data one more time to get its final dimension equal to (initial length of data frame x n x 1). It had to be done because those types of networks operate only on 3D vectors. The fraction of the training dataset can be seen in the picture.
 
-![](https://imgur.com/kT1A5pH.png)
+![](https://imgur.com/kT1A5pH.png){width=30%}
 
 The final architecture of the LSTM NN looks like:
 
-![](https://imgur.com/oK2PkrI.png")
+![](https://imgur.com/oK2PkrI.png"){width=80%}
 
-![](https://imgur.com/kT1A5pH.png)
+![](https://imgur.com/kT1A5pH.png){width=30%}
 
 Its graphical illustration can be seen below:
 
-![](https://imgur.com/339bam0.png")
+![](https://imgur.com/339bam0.png"){width=80%}
 
 #### Solution
 We repeated the learning process many times, trying different sizes of:
@@ -223,18 +223,18 @@ The best-obtained result was for:
 
 The learning process of the network can be seen here:
 
-![](https://imgur.com/59ARm9m.png")
+![](https://imgur.com/59ARm9m.png"){width=80%}
 
 
 Signal prediction on training dataset:
 
-![](https://imgur.com/WbhzOD0.png")
+![](https://imgur.com/WbhzOD0.png"){width=80%}
 
 
 
 Signal prediction on testing dataset:
 
-![](https://imgur.com/Dx0f3ja.png")
+![](https://imgur.com/Dx0f3ja.png"){width=80%}
 
 
 The model isn't overtrained, as it can be seen at the pictures, signal predicted basing on the test dataset is as good as the one predicted on the training dataset.
@@ -243,12 +243,12 @@ Then, to point the anomalies we tried to find the threshold which is the absolut
 
 group without anomalies
 
-![](https://imgur.com/4HMz185.png")
+![](https://imgur.com/4HMz185.png"){width=30%}
 
 
 group with anomalies
 
-![](https://imgur.com/rwVLJJg.png")
+![](https://imgur.com/rwVLJJg.png"){width=30%}
 
 The max error for the group without anomalies equals to 0.151 when min error for a group with anomalies is 0.1639. It means, that we can easily split the difference between those two groups if we choose a tolerated error threshold sensibly.
 
