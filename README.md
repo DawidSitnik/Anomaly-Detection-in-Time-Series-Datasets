@@ -20,7 +20,7 @@ In our project, we would like to compare classical unsupervised approaches to mo
 ## Dataset
 This dataset is provided as part of the Yahoo Webscope program, to be used for approved non-commercial research purposes by recipients who have signed a Data Sharing Agreement with Yahoo! Dataset contains real and synthetic time-series with labeled anomalies. Timestamps are replaced by integers with an increment of 1, where each data-point represents 1 hour worth of data. The anomalies are marked by humans and therefore may not be consistent.
 
-Time-series used to evaluate model performance is based on real production traffic of some of the Yahoo! properties. These time series have different scales and length, thus we will be testing models on one of the times series in the dataset. Finding anomalies in other series requires specialized parameter tuning as parameters aren't universal and can't produce models that find anomalies from different sources (there ain't no such thing as a free lunch).
+Time-series used to evaluate model performance is based on real production traffic of some of the Yahoo! properties. These time series have different scales and length, thus we will be testing models on one of the times series in the dataset. This simplifies anomaly detection task that are produced only by one of the Yahoo! properties. Finding anomalies in other series requires specialized parameter tuning as parameters aren't universal and can't produce models that find anomalies from different sources (there ain't no such thing as a free lunch).
 
 **The dataset fields are:**
 * *timestamp*
@@ -104,7 +104,7 @@ Confusion matrix:
 
 ![](https://imgur.com/pdcjbko.png)
 
-F1 score of the model - 98.31%. Precision and recall metrics are 96.69% and 100% respectively. This means that our model can identify all the outliers present in the dataset, but it is correct in 96.69% of the time.
+F1 score of the model - 98.37%. Precision and recall metrics are 100% and 96.79% respectively. This means that our model can identify all the outliers present in the dataset, but it is correct in 96.69% of the time.
 
 We also compute the F1 score to evaluate model performance. This score is often more convenient as it combines precision and recalls into a single metric, thus it is a simpler way to compare models. F1 score is a harmonic mean of the precision and recall, harmonic mean gives much more weight to low values, therefore we will get a high F1 score only if precision and recall are high.
 
@@ -122,13 +122,27 @@ One-class SVM can only be applied to a set of vectors which means that we need t
 
 Therefore, a time series can be converted to a set of vectors *T_E(N)={x_E(t), t = E ... N}*.
 
-After converting a time-series into a set of vectors we run the OCSVM algorithm on them. If the algorithm suggests that embedding vector *x_E(t)* is an outlier all points from this embedding at set 1(this marks time-series values as an outlier in times series data frame).
+Initially we set hyperparameters based on our knowledge of the OCSVM algorithm and time seires domain datasate. We do this to explain how different paramters affect algorithm anomaly detection perfromance.
 
-We set *embedding dimensions* to 5 as it gives an optimistic trade-off between detection rate and false alarm.
+After converting a time-series into a set of vectors we run the OCSVM algorithm on them. If the algorithm suggests that embedding vector $x_E(t)$ is an outlier all points from this embedding at set 1(this marks time-series values as an outlier in times series data frame).
+
+We then would set *embedding dimensions* to 5 as it gives an optimistic trade-off between detection rate and false positive. Larger embeddding dimensions will marker a larger are of timestamps as anomalies thus increasing number of false alarms. In our algorithm we stick with implementation were we set all timestamps in the embedding as an anomaly. Possible improvement of OCSM novelty detection can be done by indicating time stampt as a novelty only when large range of embedding dimensions would detect a novelty at a given timestmamp. This would make algorithm less depndent on a particular representation.
 
 The last hyperparameter that we consider is *nu*. It is a regularization parameter of the SVM algorithm and it can be interpreted as an upper bound on the fraction of margin errors and a lower bound of the fraction of support vectors relative to the number of training examples. We set this parameter to 1% as we expect a fairly small number of outliers in the time-series.
 
 As a kernel to one-class SVM, we set RBF function as it makes a good default kernel to non-linear problems. Some papers suggest that RBF kernel performs very well on different types of times series and learning tasks, it still a good practice to pay a closer look at the times series with specialized applications as other kernel functions could have a better performance.
+
+We test different combination of hyperparamters using grid search:
+```
+window   nu     kernel    scores
+    10 0.01    sigmoid 0.9953950
+     7 0.01    sigmoid 0.9950425
+     5 0.01    sigmoid 0.9946865
+     5 0.01     radial 0.9932552
+     7 0.01     radial 0.9928977
+``` 
+
+As we can see our initall guess of the hyperparamters wasn't far of the best possible combination.
 
 Outliers detected by One-class SVM:
 
@@ -138,7 +152,7 @@ Confusion matrix:
 
 ![](https://imgur.com/JdzheZZ.png)
 
-F1 score of the model - 98.66%. Precision of the OCSVM is 100%, recall - 98.66%. Compared to the shallow statistical approach OCSVM algorithm is correct in more cases. These results are easy to explain as OCSVM is a much more complex and robust algorithm which combined with embedding space can be applied to time-series.
+F1 score of the model - 99.11%. Precision of the OCSVM is 99.14%, recall - 99.07%. Compared to the shallow statistical approach OCSVM algorithm is correct in more cases. These results are easy to explain as OCSVM is a much more complex and robust algorithm which combined with embedding space can be applied to time-series.
 
 ## Seasonal Hybrid ESD Model
 
@@ -152,11 +166,11 @@ Confusion matrix:
 
 ![](https://imgur.com/qvQHxzB.png)
 
-F1 score - 99.25%. Precision of the ESD model - 100%, recall - 98.52%.
+F1 score - 99.53%. Precision of the ESD model - 100%, recall - 99.07%.
 
 ## Isolation forests
 
-Isolation Forest is a variation of the Random Forest algorithm which creates random trees until each value is in separate leaf. This random partitioning crates much shorter paths for novelties because instances with distinguishable are mote likely to be separated in the early stages of the partitioning. Therefore, when random forests produce shorter paths for some values, then this value can be considered as an anomaly. We decide whether or value is an anomaly or not based on the mean of the depth of the leaves. 
+Isolation Forest is a novelty detection algorithm which creates random trees until each value is in separate leaf. This random partitioning crates much shorter paths for novelties because instances with distinguishable are mote likely to be separated in the early stages of the partitioning. Therefore, when random forests produce shorter paths for some values, then this value can be considered as an anomaly. In the original isolation forests paper this path length was averaged over a forest of such random trees, this way it possible to measure a anomality of the time stamp value which will act as a decision function.
 
 A visualization that demonstrates the idea that anomalies are separated in the early stages of the Isolation Forest under random partitioning:
 
@@ -170,7 +184,7 @@ Confusion matrix:
 
 ![](https://imgur.com/VK5Ng3Y.png)
 
-F1 score of EDS approach - 99.85%. The precision of the Isolation Forests approach is 100%, recall - 99.71%.
+F1 score - 99.43%. The precision of the Isolation Forests approach is 99.08%, recall - 99.78%.
 
 ## LSTM Neural Network Approach
 
@@ -261,9 +275,9 @@ The basic metric for model assessment was F1 because it is robust for imbalanced
 
 As a baseline, we used interquartile distance with a coefficient 1.5. This gives us a solid yet simple method for novelty detection. We got 98.31% of F1 score, 96.69% of a recall, and 100% of precision, finding all of the anomalies and getting 47 of false-positive values. Depending on the task, this result would be treated as a success or not. It gave us a good starting point and a safe solution for the case in which getting a false negative would cause the biggest consequences.
 
-One-class Support Vector Machine improved recall of anomaly detection by 2%. This is a rather high improvement as our statistical approach was already acceptable. SVM is a more sophisticated algorithm and it is extensively used in classification and regression tasks because of its high accuracy and clear interpretation.
+One-class Support Vector Machine improved recall of anomaly detection by 1%. This is a rather high improvement as our statistical approach was already acceptable. SVM is a more sophisticated algorithm and it is extensively used in classification and regression tasks because of its high accuracy and clear interpretation.
 
-Another machine learning algorithm that we used to identify time-series anomalies was Isolation Forest. It provides the best overall performance among methods that aren't based on deep learning giving 99.25% of F1 score, 100% of precision, and 98.52% of recall. The algorithm is easily interpretable, doesn't require much of preprocessing steps, and is designed specifically for detecting anomalies. Isolation Forest doesn't have major drawbacks which makes it one of the most preferable choices in our task.
+Another machine learning algorithm that we used to identify time-series anomalies was Isolation Forest. It provides the best overall performance among methods that aren't based on deep learning giving 99.43% of F1 score, 99.08% of precision, and 99.78% of recall. The algorithm is easily interpretable, doesn't require much of preprocessing steps, and is designed specifically for detecting anomalies. Isolation Forest doesn't have major drawbacks which makes it one of the most preferable choices in our task.
 
 In the end, we tried a more complex solution which was deep learning. This process required the biggest amount of data preprocessing and took a lot of time because training bidirectional networks is a challenging task for the machine. 
 In this example, the data was transformed in a way that didn't need the rows to be labeled, so it was also an unsupervised method. Our network was able to mimic the behavior of the data in a very accurate way which allowed us to find all anomalies correctly without getting any false positives. We proved that those types of approaches to the problem can also result in success, getting the best possible score for this model.
