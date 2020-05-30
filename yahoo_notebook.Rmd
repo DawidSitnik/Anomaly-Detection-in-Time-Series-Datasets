@@ -106,7 +106,7 @@ plot_ts <- function(series, title="") {
     geom_point(outliers_NA, mapping = aes(x = timestamp, y = value, color = "red"),
                size = 3, shape = 1) +
     scale_x_continuous(expand = c(0.01, 0)) +
-    scale_x_reverse() + 
+    scale_x_reverse() +
     scale_y_continuous(expand = c(0.05, 0)) +
     theme_bw() +
     theme(axis.text.x = element_blank()) +
@@ -178,12 +178,12 @@ pacf(series$value)
 
 We can identify anomalies using interquartile distance
 ```{r, warning=FALSE}
-anomalies_STAT <- function(series) {
+anomalies_STAT <- function(series, threshold = 1.5) {
   df_stat_anom <- series %>%
   select(value) %>%
   mutate(is_low_percentile = case_when(
-    value < quantile(value, probs = 0.25) - 1.5 * IQR(value) |
-      value > quantile(value, probs = 0.75) + 1.5 * IQR(value)
+    value < quantile(value, probs = 0.25) - threshold * IQR(value) |
+      value > quantile(value, probs = 0.75) + threshold * IQR(value)
     ~ 1,
     TRUE ~ 0
   ))
@@ -210,39 +210,104 @@ plot_conf_mat(series$is_anomaly, anomalies_STAT(series))
 
 Calculate precision
 ```{r}
-print_precision <- function(truth, prediction) {
+get_precision <- function(truth, prediction) {
       labels = data.frame("truth" = as.factor(truth), 
                       "prediction" = as.factor(prediction))
-    labels %>% precision(truth, prediction) %>% print()
+    labels %>% precision(truth, prediction)
 }
 
-print_precision(series$is_anomaly, series_stat$is_anomaly)
+get_precision(series$is_anomaly, series_stat$is_anomaly) %>% print()
 ```
 
 Calculate recall
 ```{r}
-print_recall <- function(truth, prediction) {
+get_recall <- function(truth, prediction) {
     labels = data.frame("truth" = as.factor(truth), 
                       "prediction" = as.factor(prediction))
-    labels %>% recall(truth, prediction) %>% print()
+    labels %>% recall(truth, prediction)
 }
 
-print_recall(series$is_anomaly, anomalies_STAT(series))
+get_recall(series$is_anomaly, anomalies_STAT(series)) %>% print()
 ```
 
 Calculate F1 score
 ```{r}
-print_f_score <- function(truth, prediction) {
+get_f_score <- function(truth, prediction) {
     labels = data.frame("truth" = as.factor(truth), 
                       "prediction" = as.factor(prediction))
-    labels %>% f_meas(truth, prediction) %>% print()
+    labels %>% f_meas(truth, prediction)
 }
 
-print_f_score(series$is_anomaly, anomalies_STAT(series))
+get_f_score(series$is_anomaly, anomalies_STAT(series)) %>% print()
+```
+
+Calucating scores
+```{r}
+pr_curve_stat <- function(series, dt = 0.1) {
+  # Initialize empty precision and recall vector values
+  precision_values <- c(0)
+  recal_values <- c(0)
+  
+  # Set cutoff threashold and precision 0 
+  curr_precision <- 0
+  curr_threshold <- 0
+  
+  # Iterate antil precision equals 1
+  while(curr_precision < 1){
+    curr_threshold <- curr_threshold + 0.1
+    predicted_anomalies <- anomalies_STAT(series, curr_threshold)
+    curr_precision <- precision(as.factor(series$is_anomaly), 
+                                as.factor(predicted_anomalies))$estimate
+    curr_recall <- recall(as.factor(series$is_anomaly), 
+                          as.factor(predicted_anomalies))$estimate
+    precision_values[length(precision_values) + 1] <- curr_precision
+    recall_values[length(precision_values) + 1] <- curr_recall
+    print(paste("Precision: ", curr_precision))
+    pritn(paste("Recall: ", curr_recall))
+    print(" === ")
+  }
+}
 ```
 
 
 ## One Class SVM
+
+Grid search
+```{r}
+# Create cross validation parameters
+gs <- list(window = c(5, 7, 10),
+           nu = c(0.05, 0.01, 0.1, 0.2),
+           kernel = c("radial", "sigmoid", "polynomial", "linear")) %>% cross_df
+
+gs <- data.frame(gs)
+
+ocsmv_outliers <- function(series, window, nu, kernel){
+  series_embeddings <- embed(series$value, window)
+  model_ocsmv <- svm(series_embeddings, 
+                   type = 'one-classification', 
+                   kernel = kernel,
+                   gamma = 0.05,
+                   nu = nu)
+  pred_ocsvm <- predict(model_ocsmv, series_embeddings)
+  series_ocsvm <- series
+  series_ocsvm$is_anomaly <- 0
+  for (idx in which(pred_ocsvm == FALSE)){
+    series_ocsvm$is_anomaly[idx:idx+4] = 1
+  }
+  series_ocsvm
+}
+
+gs$scores <- 0
+for (idx in 1:nrow(gs)){
+  outliers <- ocsmv_outliers(series, gs[idx, ]$window, gs[idx, ]$nu, gs[idx, ]$kernel)
+  gs$scores[idx] <- get_f_score(series$is_anomaly, outliers$is_anomaly)[[3]]
+}
+
+print(gs[order(gs$scores, decreasing = TRUE), ])
+```
+
+
+
 
 Embeding time series values
 ```{r}
@@ -278,17 +343,17 @@ plot_conf_mat(series$is_anomaly, series_ocsvm$is_anomaly)
 
 Precisions
 ```{r}
-print_precision(series$is_anomaly, series_ocsvm$is_anomaly)
+get_precision(series$is_anomaly, series_ocsvm$is_anomaly) %>% print()
 ```
 
 Recall
 ```{r}
-print_recall(series$is_anomaly, series_ocsvm$is_anomaly)
+get_recall(series$is_anomaly, series_ocsvm$is_anomaly) %>% print()
 ```
 
 F1 score
 ```{r}
-print_f_score(series$is_anomaly, series_ocsvm$is_anomaly)
+get_f_score(series$is_anomaly, series_ocsvm$is_anomaly) %>% print()
 ```
 
 ## Seasonal Hybrid ESD model
@@ -323,17 +388,17 @@ plot_conf_mat(series$is_anomaly, anoms_esd$is_anomaly)
 
 Precisions
 ```{r}
-print_precision(series$is_anomaly, anoms_esd$is_anomaly)
+get_precision(series$is_anomaly, anoms_esd$is_anomaly) %>% print()
 ```
 
 Recall
 ```{r}
-print_recall(series$is_anomaly, anoms_esd$is_anomaly)
+get_recall(series$is_anomaly, anoms_esd$is_anomaly) %>% print()
 ```
 
 F1 score
 ```{r}
-print_f_score(series$is_anomaly, anoms_esd$is_anomaly)
+get_f_score(series$is_anomaly, anoms_esd$is_anomaly) %>% print()
 ```
 
 
@@ -408,16 +473,16 @@ plot_conf_mat(series$is_anomaly, series_iso$is_anomaly)
 
 Precisions
 ```{r}
-print_precision(series$is_anomaly, series_iso$is_anomaly)
+get_precision(series$is_anomaly, series_iso$is_anomaly) %>% print()
 ```
 
 Recall
 ```{r}
-print_recall(series$is_anomaly, series_iso$is_anomaly)
+get_recall(series$is_anomaly, series_iso$is_anomaly) %>% print()
 ```
 
 F1 score
 ```{r}
-print_f_score(series$is_anomaly, series_iso$is_anomaly)
+get_f_score(series$is_anomaly, series_iso$is_anomaly) %>% print()
 ```
 
