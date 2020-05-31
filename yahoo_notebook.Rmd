@@ -241,32 +241,50 @@ get_f_score <- function(truth, prediction) {
 get_f_score(series$is_anomaly, anomalies_STAT(series)) %>% print()
 ```
 
-Calucating scores
+Calculate precision and recall based on the threashold.
+Usually this is done by shifting probability/scores threshold, thus lowering/increasing precision and recall values. In IQR method there is no probability/scores of the value being identified as an anomaly. We still try to find what are precision/recall values based on IQR coefficient threashold. We aren't sure if this method of plotting P-R curve is correct.
 ```{r}
 pr_curve_stat <- function(series, dt = 0.1) {
-  # Initialize empty precision and recall vector values
-  precision_values <- c(0)
-  recal_values <- c(0)
   
-  # Set cutoff threashold and precision 0 
-  curr_precision <- 0
+  # Initialize empty precision and recall vector values
+  precision_values <- c(1)
+  recall_values <- c(0)
+  
+  # Set cutoff threashold and precision to 0 
+  curr_recall <- 0
   curr_threshold <- 0
   
-  # Iterate antil precision equals 1
-  while(curr_precision < 1){
-    curr_threshold <- curr_threshold + 0.1
+  # Iterate until recall equals 1
+  while(curr_recall < 1){
+    
+    # Update threshold
+    curr_threshold <- curr_threshold + dt
+    
+    # Find anomalies
     predicted_anomalies <- anomalies_STAT(series, curr_threshold)
-    curr_precision <- precision(as.factor(series$is_anomaly), 
-                                as.factor(predicted_anomalies))$estimate
-    curr_recall <- recall(as.factor(series$is_anomaly), 
-                          as.factor(predicted_anomalies))$estimate
+    
+    # Calculate precision and recall
+    curr_precision <- get_precision(series$is_anomaly, predicted_anomalies)[[3]]
+    curr_recall <- get_recall(series$is_anomaly, predicted_anomalies)[[3]]
+    
+    # Append current precision and recall values
     precision_values[length(precision_values) + 1] <- curr_precision
-    recall_values[length(precision_values) + 1] <- curr_recall
-    print(paste("Precision: ", curr_precision))
-    pritn(paste("Recall: ", curr_recall))
-    print(" === ")
+    recall_values[length(recall_values) + 1] <- curr_recall
+    # print(paste("Precision: ", curr_precision))
+    # print(paste("Recall: ", curr_recall))
+    # print(" === ")
   }
+  return (data.frame(precision = precision_values,
+                   recall = recall_values))
 }
+
+pr_values <- pr_curve_stat(series, 0.01)
+```
+
+Plot precision-recall curve
+```{r}
+ggplot(pr_values, aes(x = recall, y = precision)) + 
+  geom_line()
 ```
 
 
@@ -274,21 +292,31 @@ pr_curve_stat <- function(series, dt = 0.1) {
 
 Grid search
 ```{r}
-# Create cross validation parameters
+# Grid search parameters
 gs <- list(window = c(5, 7, 10),
            nu = c(0.05, 0.01, 0.1, 0.2),
            kernel = c("radial", "sigmoid", "polynomial", "linear")) %>% cross_df
 
 gs <- data.frame(gs)
 
+# Intialize and train model based on provided hyperparameters
+# Return corresponding outliers
 ocsmv_outliers <- function(series, window, nu, kernel){
+  
+  # Embedding dimensions of the time series
   series_embeddings <- embed(series$value, window)
+  
+  # Create model based on the paramters
   model_ocsmv <- svm(series_embeddings, 
                    type = 'one-classification', 
                    kernel = kernel,
                    gamma = 0.05,
                    nu = nu)
+  
+  # Train model
   pred_ocsvm <- predict(model_ocsmv, series_embeddings)
+  
+  # Store detected outliers in new time series
   series_ocsvm <- series
   series_ocsvm$is_anomaly <- 0
   for (idx in which(pred_ocsvm == FALSE)){
@@ -305,8 +333,6 @@ for (idx in 1:nrow(gs)){
 
 print(gs[order(gs$scores, decreasing = TRUE), ])
 ```
-
-
 
 
 Embeding time series values
@@ -458,12 +484,29 @@ anomalies_ISO <- function(series, threashold=0.5) {
   iso_anomalies <- if_else(iso$scores$anomaly_score > threashold, 1, 0)
 }
 
+anomalies_ISO_scores <- function(series){
+    # Isolation forests model instance
+  iso <- isolationForest$new()
+  
+  # Fit for time series values data
+  iso$fit(data.frame(series$value))
+  data.frame(truth = as.factor(series$is_anomaly),
+             estimate = 1 - iso$scores$anomaly_score)
+}
+
+```
+
+```{r}
+scores_iso <- anomalies_ISO_scores(series)
+pr_curve(scores_iso, truth, estimate) %>% autoplot()
+```
+
+
+```{r}
 threashold = 0.6
 series_iso <- series
 series_iso["is_anomaly"] <- anomalies_ISO(series, threashold)
 plot_ts(series_iso, paste("Isolation forest anomalies. Threashold:", threashold))
-
-# TODO: choose threashold by observing the anoamly scores quantiles
 ```
 
 Confusion matrix
