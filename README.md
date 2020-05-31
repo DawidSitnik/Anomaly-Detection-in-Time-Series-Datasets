@@ -44,7 +44,7 @@ The is_anomaly field is a boolean indicating if the current value at a given tim
 The dataset before preprocessing:
 
 <p align="center">
-  <img src = "./pictures/before_preprocessing.png"/>
+  <img src = "./pictures/before_preprocessing1.png"/>
 </p>
 
 Common exploratory data analysis tools in time-series and non-time series data are histograms. We will also look at the differenced data because we want to use our timestamp (time) axis.
@@ -206,7 +206,10 @@ As we can see, our signal is quite complex - it changes its values drastically, 
 
 The preprocessed signal can be seen in the picture below:
 
-![](https://imgur.com/oSG2zG7.png)
+<p align="center">
+  <img src = "./pictures/after_preprocessing.png"/>
+</p>
+
 
 So finally a description of our data is:
 
@@ -244,13 +247,17 @@ The learning process of the network can be seen here:
 
 Signal prediction on training dataset:
 
-![](https://imgur.com/WbhzOD0.png")
+<p align="center">
+  <img src = "./pictures/train_r_vs_p.png"/>
+</p>
 
 
 
 Signal prediction on testing dataset:
 
-![](https://imgur.com/Dx0f3ja.png")
+<p align="center">
+  <img src = "./pictures/test_r_vs_p.png"/>
+</p>
 
 
 The model isn't overtrained, as it can be seen at the pictures, signal predicted basing on the test dataset is as good as the one predicted on the training dataset.
@@ -268,7 +275,8 @@ group with anomalies
 
 The max error for the group without anomalies equals to 0.151 when min error for a group with anomalies is 0.1639. It means, that we can easily split the difference between those two groups if we choose a tolerated error threshold sensibly.
 
-The threshold value set to differentiate groups correctly is *12 * (standard deviation of the whole dataset)* what equals to 1.559.
+The threshold value set to differentiate groups correctly is *5.4 * (standard deviation of the whole dataset)*.
+With this value it was possible to mark all anomalies correctely, while getting only one false positive.
 
 ## Summary
 As we could see, the dataset was not the best for the analysis because it contained only two anomalies. It was hard to decide where to put the line between normal data and anomalies. In the first approaches, we decided to treat the dataset conservatively, assigning more data points to the group of anomalies. We could fix the parameters to separate the dataset perfectly, but we decided to do so only in the last part of the task. To prepare for a different set of data we would subordinate the parameters from the F1 score, choosing that one which gives the best result on testing data. The aim of this exercise however was only to prepare for one dataset, which we did properly. 
