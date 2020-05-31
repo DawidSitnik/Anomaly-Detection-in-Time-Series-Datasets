@@ -51,9 +51,9 @@ Common exploratory data analysis tools in time-series and non-time series data a
 
 The histogram of untransformed data
 
-![](https://imgur.com/M2phBfi.png)
+![](https://imgur.com/zDFF4m6.png)
 
-![](https://imgur.com/ovzO405.png)
+![](https://imgur.com/GDfuazo.png)
 
 
 The histogram of untransformed data (top) shows normal distributions. This is to be expected given that the underlying sample (1st in our case) has no trend. If the series had a trend, we would difference the data to remove it, and this would transform the data into a more normal shaped distribution (bottom).
@@ -72,23 +72,7 @@ alternative hypothesis: stationary
 
 Depending on the result of the test, the null hypothesis can be rejected for a specific significance level - *p*-value. Conventionally, if *p*-value is less 0.05, the time series is likely stationery, whereas a *p* > 0.05 provides no such evidence.
 
-<!-- Common exploratory times series methods are identifying where the series has a self-correlation. Self-correlation of a time series is the idea that value in a time series at one give point in time correlates with the value at another point in time. Autocorrelation on the other hand asks more general questions of whether there is a correlation between two points in a specific time series with a specific fixed distance between them.
-
-We can apply the Box-Pierce test to the data to know whether or not the data is autocorrelated.
-
-```
-    Box-Pierce test
-
-data:  series$value
-X-squared = 1128.3, df = 1, p-value < 2.2e-16
-```
-
-Same as with the ADF test we can see how likely times series is autocorrelated depending on the *p*-values.
-
-We can graph the autocorrelation function to dig further into the data.
-
-![](https://imgur.com/kyFbXmR.png) -->
-
+We doesn't always need to split dataset into train/test as some of methods are based on unsupervised learning. Testing  performance of such methods simply can be done by evaluting how many outliers it was able to detect, thus calculating such metrics as precision, recall, confusion matrix and if anomalies can be scored we would add precision/recall or ROC curve.
 
 ## Statistical approach
 
@@ -111,6 +95,10 @@ F1 score of the model - 98.37%. Precision and recall metrics are 100% and 96.79%
 We also compute the F1 score to evaluate model performance. This score is often more convenient as it combines precision and recalls into a single metric, thus it is a simpler way to compare models. F1 score is a harmonic mean of the precision and recall, harmonic mean gives much more weight to low values, therefore we will get a high F1 score only if precision and recall are high.
 
 It is a topic of discussion whether this metric will be useful in production in our case as it favors classifiers with similar precision and recall. In our task, we work with anomaly detection on an anonymized dataset and we don't know what kind of anomalies we look at. There could be cases that we want to identify all anomalies(high precisions) sacrificing recall. For example, anomalies could mean vital health parameter of a patient and undetected ananomalies will result in the certain death.
+
+Another way to test performance of outliers detection methods is to plot precision-recall or ROC curve. As a rule of thumb it is prefered to use PR curve whenever the positive class is rare (outliers in our case). Plotting PR curve makes sense when we can assign a score/probability to values in dataset. In our IQR approach there is no clear notion of a score of time series values. We tried plotting PR curve choosing as a threashold IQR coefficient, this doesn't gives us scores but we still can see how different values of coefficient affect IQR anomaly detection rate. Code can be found in ``yahoh_notebook`` knitted file in the ``Statistical approach`` section.
+
+![](https://imgur.com/YrMfvMX.png)
 
 ## One-class Support Vector Machine
 
@@ -144,7 +132,7 @@ window   nu     kernel    scores
      7 0.01     radial 0.9928977
 ``` 
 
-As we can see our initall guess of the hyperparamters wasn't far of the best possible combination.
+As we can see our initall guess of the hyperparamters wasn't far of the best possible combination. We will stick to the paramters we set initially as it suggested by some papers that they have better performance on wider variety of time series.
 
 Outliers detected by One-class SVM:
 
@@ -155,6 +143,8 @@ Confusion matrix:
 ![](https://imgur.com/JdzheZZ.png)
 
 F1 score of the model - 99.11%. Precision of the OCSVM is 99.14%, recall - 99.07%. Compared to the shallow statistical approach OCSVM algorithm is correct in more cases. These results are easy to explain as OCSVM is a much more complex and robust algorithm which combined with embedding space can be applied to time-series.
+
+Same as in *IQR* anomaly detection method we can't calculate any score for anomalies detected by OCSVM. Thus we can't draw PR curve as an addition model performance indicator. Possible way to tackle this problem is to associate in some way a score to the outlier decision.
 
 ## Seasonal Hybrid ESD Model
 
@@ -187,6 +177,10 @@ Confusion matrix:
 ![](https://imgur.com/VK5Ng3Y.png)
 
 F1 score - 99.43%. The precision of the Isolation Forests approach is 99.08%, recall - 99.78%.
+
+Precicion/reacall curve, based on the scores assigned by Isolation forest:
+
+![](https://imgur.com/JtLPTxB.png)
 
 ## LSTM Neural Network Approach
 
