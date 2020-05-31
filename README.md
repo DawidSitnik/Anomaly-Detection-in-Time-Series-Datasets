@@ -43,7 +43,9 @@ The is_anomaly field is a boolean indicating if the current value at a given tim
 
 The dataset before preprocessing:
 
-![](https://imgur.com/qkjA3oo.png)
+<p align="center">
+  <img src = "./pictures/before_preprocessing.png"/>
+</p>
 
 Common exploratory data analysis tools in time-series and non-time series data are histograms. We will also look at the differenced data because we want to use our timestamp (time) axis.
 
