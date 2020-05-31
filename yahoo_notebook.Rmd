@@ -47,7 +47,7 @@ Default path is set to `dataset/`.
 ```{r, cache=TRUE}
 load_dataset <- function(convert_timestamp = FALSE,
                          path = "data") {
-  dataset_files <- list.files(path, full.names = TRUE)
+  dataset_files <- list.files(path, full.names = TRUE)[1]
   
   # We throw warning if dataset is empty
   if (length(dataset_files) == 0){
