@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[1]:
 
 
 import numpy as np
@@ -37,24 +37,44 @@ df_full_with_anomalies = pd.DataFrame(columns = ['value', 'timestamp', 'is_anoma
 file_path = './data/'
 
 
+# In[2]:
+
+
+# name = file_path+"real_1.csv"
+# df = pd.read_csv(name, encoding = "ISO-8859-1", header=0)
+# df.sort_values(by='value').tail(20)
+# anomalies_idx = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300]
+# # df[df.timestamp.isin(anomalies_idx)].apply(lambda x: 4)
+# # df[df.timestamp.isin(anomalies_idx)].is_anomaly.apply(lambda x: 1)
+# df.loc[df.timestamp.isin(anomalies_idx), 'value'] = 0.4
+# df.loc[df.timestamp.isin(anomalies_idx), 'is_anomaly'] = 1
+
+
 # In[3]:
+
+
+# df.to_csv(name)
+
+
+# In[4]:
 
 
 for i in range(1,2):
     #reading csv
-    name = file_path+"real_"+str(i)+'.csv'
+    name = file_path+"real_1.csv"
     df = pd.read_csv(name, encoding = "ISO-8859-1", header=0)
+    df = df[['timestamp', 'value', 'is_anomaly']]
     df = df.iloc[::-1]
     df.columns = ['timestamp', 'value', 'is_anomaly']
     df_full_with_anomalies = pd.concat([df_full_with_anomalies, df.reset_index()], sort=True, axis=0)
-    rolling_with_anomalies = df_full_with_anomalies.value.rolling(window=5)
+    rolling_with_anomalies = df_full_with_anomalies.value.rolling(window=1)
     df_full_with_anomalies['value'] = rolling_with_anomalies.mean()
     #delete anomalies from dataset
     df_no_anomalies = df[df.is_anomaly != 1]
     df_no_anomalies = df_no_anomalies.iloc[::-1]
     
     #smoothing signal
-    rolling = df_no_anomalies.value.rolling(window=5)
+    rolling = df_no_anomalies.value.rolling(window=1)
     df_no_anomalies['value'] = rolling.mean()
     
     #droping unused columns
@@ -76,7 +96,15 @@ ax.plot(df_full_with_anomalies[df_full_with_anomalies.is_anomaly == 1].value, 'r
 # fig.show()
 
 
-# In[4]:
+# In[5]:
+
+
+fig, ax = plt.subplots(num=None, figsize=(30,20), dpi=80, facecolor='w', edgecolor='k')
+
+ax.plot(df.reset_index().value)
+
+
+# In[6]:
 
 
 df_full_max = df_full.max()
@@ -88,13 +116,13 @@ figure(num=None, figsize=(30,20), dpi=80, facecolor='w', edgecolor='k')
 plt.plot(df_full_normalized.reset_index().value)
 
 
-# In[5]:
+# In[7]:
 
 
 df_full.describe()
 
 
-# In[6]:
+# In[8]:
 
 
 timesteps = 5
@@ -115,7 +143,7 @@ x_test = x_test.reshape(x_test.shape[0],timesteps, 1)
 x_train.shape,x_test.shape, 
 
 
-# In[7]:
+# In[9]:
 
 
 # define model
@@ -129,7 +157,7 @@ model.compile(optimizer='adam', loss='mse')
 model.summary()
 
 
-# In[8]:
+# In[10]:
 
 
 y_train = x_train
@@ -137,26 +165,26 @@ x_train = np.delete(x_train, 0, axis=0)
 y_train = np.delete(y_train, y_train.shape[0]-1, axis=0)
 
 
-# In[ ]:
+# In[11]:
 
 
 lstm_model = model.fit(x_train, y_train , epochs=10, batch_size=5, verbose=0)
 #lstm_model = model.load_weights('./weights/weights_21-04-2020_06_52_46.h5')
 
 
-# In[ ]:
+# In[12]:
 
 
-# fit and save the model
-import datetime
-d = datetime.datetime.today()
-model_name = "model_"+d.strftime('%d-%m-%Y_%H_%M_%S')+".h5"
-weights_name = "weights_"+d.strftime('%d-%m-%Y_%H_%M_%S')+".h5"
+# # fit and save the model
+# import datetime
+# d = datetime.datetime.today()
+# model_name = "model_"+d.strftime('%d-%m-%Y_%H_%M_%S')+".h5"
+# weights_name = "weights_"+d.strftime('%d-%m-%Y_%H_%M_%S')+".h5"
 
-model.save_weights("./weights/"+weights_name)
+# model.save_weights("./weights/"+weights_name)
 
 
-# In[ ]:
+# In[13]:
 
 
 history = lstm_model.history
@@ -170,7 +198,7 @@ plt.savefig('model_loss.png')
 plt.show()
 
 
-# In[ ]:
+# In[14]:
 
 
 # demonstrate reconstruction
@@ -182,12 +210,12 @@ y_test = y_test.reshape((y_test.shape[0]*y_test.shape[1]),1)[0::5]
 yhat = yhat.reshape((yhat.shape[0]*yhat.shape[1]),1)[0::5]
 
 
-# In[ ]:
+# In[62]:
 
 
 fig,ax = plt.subplots(figsize=(20,16), dpi=80)
-ax.plot(y_test, 'b', label="Actual", linewidth=3)
-ax.plot(yhat, 'y', label="Predicted", linewidth=2)
+ax.plot(y_test, 'b', label="Actual", linewidth=1)
+ax.plot(yhat, 'y', label="Predicted", linewidth=1)
 ax.set_ylabel('Value')
 ax.set_xlabel('Timesteps')
 ax.set_title('Test Dataset, Real vs Predicted Values', fontsize =16)
@@ -196,7 +224,7 @@ plt.savefig('test.png')
 plt.show()
 
 
-# In[ ]:
+# In[16]:
 
 
 # demonstrate reconstruction
@@ -208,12 +236,12 @@ y_train = y_train.reshape((y_train.shape[0]*y_train.shape[1]),1)[0::5]
 yhat_train = yhat_train.reshape((yhat_train.shape[0]*yhat_train.shape[1]),1)[0::5]
 
 
-# In[ ]:
+# In[61]:
 
 
 fig,ax = plt.subplots(figsize=(20,16), dpi=80)
-ax.plot(y_train, 'b', label="Actual", linewidth=3)
-ax.plot(yhat_train, 'y', label="Predicted", linewidth=2)
+ax.plot(y_train, 'b', label="Actual", linewidth=1)
+ax.plot(yhat_train, 'y', label="Predicted", linewidth=1)
 ax.set_ylabel('Value')
 ax.set_xlabel('Timesteps')
 ax.set_title('Train Dataset, Real vs Predicted Values', fontsize =16)
@@ -222,13 +250,13 @@ plt.savefig('train.png')
 plt.show()
 
 
-# In[ ]:
+# In[18]:
 
 
 df_full_with_anomalies[df_full_with_anomalies.is_anomaly ==1]
 
 
-# In[ ]:
+# In[19]:
 
 
 df_full_with_anomalies[df_full_with_anomalies.is_anomaly ==1]
@@ -243,14 +271,14 @@ X_with_anomalies = X_with_anomalies.reshape(X_with_anomalies.shape[0], timesteps
 df_full_with_anomalies_predictions = model.predict(X_with_anomalies)
 
 
-# In[ ]:
+# In[20]:
 
 
 df_values = X_with_anomalies.reshape((X_with_anomalies.shape[0]*X_with_anomalies.shape[1]),1)[0::5]
 df_predictions = df_full_with_anomalies_predictions.reshape((df_full_with_anomalies_predictions.shape[0]*df_full_with_anomalies_predictions.shape[1]),1)[0::5]
 
 
-# In[ ]:
+# In[21]:
 
 
 df_is_anomaly = df_full_with_anomalies.drop(columns=['timestamp', 'value', 'index'])
@@ -260,7 +288,7 @@ X_is_anomaly = X_is_anomaly.reshape(X_is_anomaly.shape[0], timesteps,1)
 X_is_anomaly = X_is_anomaly.reshape((X_is_anomaly.shape[0]*X_is_anomaly.shape[1]),1)[0::5]
 
 
-# In[ ]:
+# In[22]:
 
 
 final_df = pd.DataFrame()
@@ -271,12 +299,12 @@ final_df['abs_error'] = np.abs(df_values-df_predictions)
 final_df[final_df['is_anomaly'] == 0].abs_error.describe(), final_df[final_df['is_anomaly'] == 1].abs_error.describe()
 
 
-# In[ ]:
+# In[64]:
 
 
-fig,ax = plt.subplots(figsize=(14,16), dpi=80)
-ax.plot(final_df['value'], 'b', label="Actual", linewidth=3)
-ax.plot(final_df['prediction'], 'y', label="Predicted", linewidth=2)
+fig,ax = plt.subplots(figsize=(20,15), dpi=80)
+ax.plot(final_df['value'], 'b', label="Actual", linewidth=1)
+ax.plot(final_df['prediction'], 'y', label="Predicted", linewidth=1)
 ax.set_ylabel('Value')
 ax.set_xlabel('Timesteps')
 ax.set_title('Real vs Predicted Values', fontsize =16)
@@ -286,32 +314,47 @@ ax.plot(df_full_with_anomalies[df_full_with_anomalies.is_anomaly == 1].value, 'r
 plt.show()
 
 
-# In[ ]:
+# In[24]:
 
 
 final_df[final_df.is_anomaly == 1]
 
 
-# In[ ]:
+# In[25]:
 
 
 final_df['abs_error'].mean(), final_df['abs_error'].std()
 
 
-# In[ ]:
+# In[26]:
 
 
 final_df['abs_error'].std()*12
 
 
+# In[65]:
+
+
+final_df['is_anomaly_prediction'] = final_df['abs_error'].apply(lambda x: 0 if np.abs(final_df['abs_error'].mean() - x) < final_df['abs_error'].std()*5.4 else 1)
+final_df[(final_df['is_anomaly'] == final_df['is_anomaly_prediction']) & (final_df['is_anomaly'] == 1)].value.count(), final_df[(final_df['is_anomaly'] != final_df['is_anomaly_prediction']) & (final_df['is_anomaly'] == 0)].value.count()
+
+
 # In[ ]:
 
 
-final_df['is_anomaly_prediction'] = final_df['abs_error'].apply(lambda x: 0 if np.abs(final_df['abs_error'].mean() - x) < final_df['abs_error'].std()*12 else 1)
-final_df[(final_df['is_anomaly'] != final_df['is_anomaly_prediction']) & (final_df['is_anomaly'] == 1)].value.count(), final_df[(final_df['is_anomaly'] != final_df['is_anomaly_prediction']) & (final_df['is_anomaly'] == 0)].value.count()
+# true_positive_list = []
+# false_positive_list = []
+# i = 1
+# while i < 10:
+#     final_df['is_anomaly_prediction'] = final_df['abs_error'].apply(lambda x: 0 if np.abs(final_df['abs_error'].mean() - x) < final_df['abs_error'].std()*i else 1)
+#     tp = final_df[(final_df['is_anomaly'] == final_df['is_anomaly_prediction']) & (final_df['is_anomaly'] == 1)].value.count()
+#     fp = final_df[(final_df['is_anomaly'] != final_df['is_anomaly_prediction']) & (final_df['is_anomaly'] == 1)].value.count()
+#     true_positive_list.append(tp)
+#     false_positive_list.append(fp)
+#     i+=0.1
 
 
-# In[25]:
+# In[28]:
 
 
 # import sklearn.preprocessing as preproc
