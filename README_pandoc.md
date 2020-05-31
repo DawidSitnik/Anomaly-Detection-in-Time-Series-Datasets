@@ -43,9 +43,7 @@ The is_anomaly field is a boolean indicating if the current value at a given tim
 
 The dataset before preprocessing:
 
-<p align="center">
-  <img src = "./pictures/before_preprocessing1.png"/>
-</p>
+![](./pictures/before_preprocessing1.png)
 
 Common exploratory data analysis tools in time-series and non-time series data are histograms. We will also look at the differenced data because we want to use our timestamp (time) axis.
 
@@ -108,9 +106,9 @@ Kernelized SVM algorithm tries to separate two-class by first mapping instances 
 
 One-class SVM can only be applied to a set of vectors which means that we need to figure out how to convert time series so that it can be fed to OCSVM. We do this by unfolding the time series into a phase space using time-delay embeddings. Time series embedding vector process:
 
-*x_E(t) = [x(t-E+1) x(x-E+2) ... x(t)]*, where *x_E(t)* is an embedding vector at time *t* and *E* is *embedding dimension*.
+$$x_E(t) = [x(t-E+1) x(x-E+2) ... x(t)]$$, where $x_E(t)$ is an embedding vector at time $t$ and $E$ is *embedding dimension*.
 
-Therefore, a time series can be converted to a set of vectors *T_E(N)={x_E(t), t = E ... N}*.
+Therefore, a time series can be converted to a set of vectors $T_E(N)=\{x_E(t), t = E ... N\}$.
 
 Initially we set hyperparameters based on our knowledge of the OCSVM algorithm and time series domain datasat. We do this to explain how different paramters affect algorithm anomaly detection perfromance.
 
@@ -202,24 +200,22 @@ As we can see, our signal is quite complex - it changes its values drastically, 
 
 The preprocessed signal can be seen in the picture below:
 
-<p align="center">
-  <img src = "./pictures/after_preprocessing.png"/>
-</p>
+![](./pictures/after_preprocessing.png)
 
 
 So finally a description of our data is:
 
-![](https://imgur.com/BMTJWsV.png)
+![](https://imgur.com/BMTJWsV.png){width=30%}
 
 Because of the LSTM neural network nature, we had to reshape our data one more time to get its final dimension equal to (initial length of data frame x n x 1). It had to be done because those types of networks operate only on 3D vectors. The fraction of the training dataset can be seen in the picture.
 
-![](https://imgur.com/kT1A5pH.png)
+![](https://imgur.com/kT1A5pH.png){width=30%}
 
 The final architecture of the LSTM NN looks like:
 
 ![](https://imgur.com/oK2PkrI.png")
 
-![](https://imgur.com/kT1A5pH.png)
+![](https://imgur.com/kT1A5pH.png){width=30%}
 
 Its graphical illustration can be seen below:
 
@@ -243,17 +239,13 @@ The learning process of the network can be seen here:
 
 Signal prediction on training dataset:
 
-<p align="center">
-  <img src = "./pictures/train_r_vs_p.png"/>
-</p>
+![](./pictures/train_r_vs_p.png)
 
 
 
 Signal prediction on testing dataset:
 
-<p align="center">
-  <img src = "./pictures/test_r_vs_p.png"/>
-</p>
+![](./pictures/test_r_vs_p.png)
 
 
 The model isn't overtrained, as it can be seen at the pictures, signal predicted basing on the test dataset is as good as the one predicted on the training dataset.
